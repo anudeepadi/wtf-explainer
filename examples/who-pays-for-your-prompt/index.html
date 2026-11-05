@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Who Pays for Your Prompt?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:ital,wght@0,400;0,600;0,800;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* ============ WORLD (swap per topic) ============
+   Layout: an "episode on a page": saturated stage bands (cold open, chapter
+   cards, diagrams) alternate with paper bands (the conversation). One stage
+   colour per topic, one highlighter for the thing to look at. */
+:root{
+  --stage:#1E3CC8; --stage-deep:#12278C; --stage-ink:#FFF7E3; --stage-line:rgba(255,247,227,.30);
+  --hi:#D8F14B; --hi-ink:#141C44;          /* highlighter: the single thing to look at */
+  --warm:#FFC53D;                          /* money, numbers, titles on stage */
+  --card:#FFFBF0; --card-2:#EFE7D2; --card-ink:#151B3F; --card-sub:#59618A; --grid:rgba(255,247,227,.13);
+  --paper:#F4F0E4; --paper-2:#EAE4D3; --ink:#1A1E31; --muted:#5A5F74; --rule:#D3CAB3;
+  --font-display:"Anton","Impact","Arial Narrow Bold",sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --frame:blueprint;  /* documentation only: blueprint | guilloche | stitch | double | torn */
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --stage:#1A33AD; --stage-deep:#0D1C66;
+  --paper:#11131E; --paper-2:#191C2B; --ink:#ECE8DC; --muted:#A2A6B8; --rule:#2B2F45; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#1A33AD; --stage-deep:#0D1C66;
+  --paper:#11131E; --paper-2:#191C2B; --ink:#ECE8DC; --muted:#A2A6B8; --rule:#2B2F45; color-scheme:dark}
+
+/* ============ ENGINE: base ============ */
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.prose{max-width:64ch}
+.prose p{margin:0 0 1em}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:.98;text-wrap:balance;margin:0}
+.mono{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.04em}
+.eyebrow{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.mark{background:var(--hi);color:var(--hi-ink);padding:0 .18em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--hi);outline-offset:3px}
+
+/* masthead */
+.masthead{background:var(--stage-deep);color:var(--stage-ink)}
+.masthead .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.stamp{font-family:var(--font-display);text-transform:uppercase;font-size:1.05rem;letter-spacing:.06em;border:1.5px solid var(--stage-line);padding:3px 10px;border-radius:4px}
+.stamp b{color:var(--hi);font-weight:400}
+.modes{display:flex;border:1.5px solid var(--stage-line);border-radius:999px;overflow:hidden}
+.modes button{all:unset;cursor:pointer;font-family:var(--font-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px}
+.modes button[aria-pressed="true"]{background:var(--hi);color:var(--hi-ink)}
+
+/* ============ ENGINE: stage bands + texture + frames ============ */
+.stage{position:relative;background:var(--stage);color:var(--stage-ink);isolation:isolate;overflow:hidden}
+.stage::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.22;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.stage .wrap{padding-block:clamp(48px,8vw,96px)}
+/* frame: blueprint */
+.frame-blueprint{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;background-position:-1px -1px}
+.frame-blueprint::after,.frame-stitch::after,.frame-double::after,.frame-guilloche::after{content:"";position:absolute;inset:14px;pointer-events:none;z-index:-1}
+.frame-blueprint{background-color:var(--stage)}
+.frame-blueprint::after{border:1.5px solid var(--stage-line);
+  background:linear-gradient(var(--stage-ink),var(--stage-ink)) 0 0/18px 3px no-repeat,linear-gradient(var(--stage-ink),var(--stage-ink)) 0 0/3px 18px no-repeat,
+             linear-gradient(var(--stage-ink),var(--stage-ink)) 100% 100%/18px 3px no-repeat,linear-gradient(var(--stage-ink),var(--stage-ink)) 100% 100%/3px 18px no-repeat}
+/* other frames, ready for other worlds */
+.frame-stitch::after{border:2px dashed var(--stage-line);border-radius:6px}
+.frame-double::after{border:3px double var(--stage-line)}
+.frame-double{background-image:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.05) 0 6deg,transparent 6deg 12deg)}
+.frame-guilloche::after{border:2px solid var(--stage-line);outline:1px solid var(--stage-line);outline-offset:5px;border-radius:10px}
+.frame-guilloche{background-image:repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.07) 0 1px,transparent 1px 9px)}
+
+/* big stage type with offset shadow */
+.shout{font-size:clamp(2.6rem,7.5vw,5.6rem);color:var(--stage-ink);text-shadow:.045em .045em 0 var(--stage-deep)}
+.shout em{font-style:normal;color:var(--hi)}
+
+/* ============ COMPONENT: eras (cold open timeline) ============ */
+.eras{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.era{background:var(--stage-deep);border:1.5px solid var(--stage-line);border-radius:12px;padding:16px 14px;display:grid;gap:8px;align-content:start}
+.era .when{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;color:var(--warm)}
+.era .what{font-family:var(--font-display);text-transform:uppercase;font-size:1.25rem;line-height:1.05}
+.era .gloss{font-size:.88rem;opacity:.85;line-height:1.4}
+.era svg{width:30px;height:30px;stroke:var(--stage-ink)}
+.era.next{background:transparent;border-style:dashed}
+.era.next .what{color:var(--hi)}
+
+/* ============ COMPONENT: title cartouche ============ */
+.cartouche{position:relative;margin:0 auto;max-width:860px;text-align:center;padding:clamp(28px,5vw,56px) clamp(16px,4vw,48px);
+  background:var(--stage-deep);border-radius:28px;border:2px solid var(--stage-line);box-shadow:0 0 0 8px var(--stage),0 0 0 10px var(--stage-line)}
+.cartouche .ep{position:absolute;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;opacity:.75}
+.cartouche .ep.tl{top:14px;left:20px}.cartouche .ep.br{bottom:14px;right:20px}
+.cartouche h1{font-size:clamp(2.4rem,8vw,5.4rem);text-shadow:.04em .04em 0 var(--stage)}
+.cartouche h1 em{font-style:normal;color:var(--hi)}
+.tally{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 28px;margin-top:26px}
+.tally div{display:grid;gap:2px}
+.tally b{font-family:var(--font-display);font-weight:400;font-size:clamp(1.6rem,4vw,2.3rem);color:var(--warm);line-height:1}
+.tally span{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+
+/* ============ COMPONENT: chapter card ============ */
+.chapter .wrap{display:grid;gap:14px;justify-items:start}
+.chapter .q{font-size:clamp(2.2rem,6.5vw,4.6rem);max-width:16ch;text-shadow:.045em .045em 0 var(--stage-deep)}
+.chapter .q em{font-style:normal;color:var(--hi)}
+.chapter .sub{max-width:52ch;opacity:.9}
+
+/* ============ conversation (paper bands) ============ */
+.talkband{padding-block:clamp(40px,6vw,72px)}
+.ask{display:inline-block;position:relative;font-family:var(--font-display);text-transform:uppercase;font-size:clamp(1.25rem,2.6vw,1.6rem);line-height:1.1;
+  background:var(--stage);color:var(--stage-ink);padding:10px 16px 12px;border-radius:14px 14px 14px 4px;margin:8px 0 14px;max-width:34ch}
+.ask::before{content:"The dumb question";display:block;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;color:var(--hi);margin-bottom:4px}
+.aside{border-left:3px solid var(--warm);padding-left:14px;color:var(--muted);font-size:.95rem}
+
+/* split: conversation + diagram panel (the WTF side-panel) */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,4vw,48px);align-items:start}
+.split > .panel{position:sticky;top:16px}
+@media (max-width:860px){.split{grid-template-columns:minmax(0,1fr)}.split > .panel{position:static}}
+
+/* ============ COMPONENT: panel (diagram on a stage card) ============ */
+.panel{background:var(--stage);color:var(--stage-ink);border-radius:18px;padding:18px;position:relative;isolation:isolate;overflow:hidden}
+.panel::after{content:"";position:absolute;inset:8px;border:1.5px solid var(--stage-line);border-radius:12px;pointer-events:none;z-index:-1}
+.panel .ptitle{font-family:var(--font-display);text-transform:uppercase;font-size:1.35rem;color:var(--warm);margin:4px 4px 12px;line-height:1.05}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ============ COMPONENT: flow (build-up diagram) ============ */
+.flow{position:relative;min-width:300px}
+.flow svg.edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.node{position:absolute;transform:translate(-50%,-50%);width:var(--nw,30%);min-width:92px;background:var(--card);color:var(--card-ink);border-radius:10px;
+  padding:20px 8px 9px;text-align:center;box-shadow:0 3px 0 var(--stage-deep);transition:opacity .35s,transform .35s,box-shadow .35s}
+.node .ic{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;background:var(--stage-deep);
+  border:2px solid var(--card);display:grid;place-items:center}
+.node .ic svg{width:15px;height:15px;stroke:var(--stage-ink)}
+.node b{display:block;font-size:.86rem;line-height:1.15}
+.node small{display:block;font-size:.7rem;color:var(--card-sub);line-height:1.2;margin-top:2px}
+.node.hl{background:var(--hi);color:var(--hi-ink)}
+.node.hl small{color:var(--hi-ink);opacity:.75}
+.flow .ghost{opacity:.14}
+.flow.tight .node{padding:17px 6px 7px}.flow.tight .node small{display:none}
+.node.now{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 3px var(--hi),0 3px 0 var(--stage-deep)}
+.edge{transition:opacity .35s}
+.edge .rail{stroke:var(--stage-ink);stroke-width:7;fill:none;stroke-linecap:round;opacity:.9}
+.edge .rail-in{stroke:var(--stage);stroke-width:3;fill:none;stroke-linecap:round}
+.edge.money .rail{stroke:var(--warm)} .edge.money .rail-in{stroke-dasharray:2 7}
+.edge .tip{fill:var(--stage-ink)} .edge.money .tip{fill:var(--warm)}
+.edge text{font-family:var(--font-mono);font-size:10.5px;fill:var(--stage-ink);letter-spacing:.04em}
+.edge .lbl-bg{fill:var(--stage-deep)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:12px 4px 0;font-family:var(--font-mono);font-size:.7rem}
+.legend i{display:inline-block;width:22px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle;background:var(--stage-ink)}
+.legend i.m{background:repeating-linear-gradient(90deg,var(--warm) 0 5px,transparent 5px 8px);border:1px solid var(--warm)}
+.stepbar{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px;border-radius:12px;background:var(--stage-deep)}
+.stepbar button{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--stage);border:1.5px solid var(--stage-line);flex:none}
+.stepbar button:hover{background:var(--hi);color:var(--hi-ink)}
+.stepbar button svg{width:16px;height:16px}
+.stepbar .cap{flex:1;min-width:0;font-size:.9rem;line-height:1.35}
+.stepbar .cap b{font-family:var(--font-mono);font-weight:600;font-size:.7rem;letter-spacing:.1em;color:var(--hi);display:block}
+
+/* ============ COMPONENT: bars (highlight chart) ============ */
+.bars svg{width:100%;height:auto;display:block}
+.bars text{font-family:var(--font-mono);fill:var(--stage-ink)}
+.bars .big{font-family:var(--font-display);font-size:22px}
+.srcpill{display:inline-block;font-family:var(--font-mono);font-size:.66rem;background:var(--card);color:var(--card-ink);padding:3px 8px;border-radius:4px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;font-family:var(--font-mono);font-size:.66rem;opacity:.9}
+
+/* ============ COMPONENT: stack (who earns at each layer) ============ */
+.stack{display:grid;gap:8px}
+.layer{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,2fr) auto;gap:12px;align-items:center;background:var(--stage-deep);border:1.5px solid var(--stage-line);border-radius:10px;padding:12px 14px}
+.layer h3{font-size:1.3rem}
+.layer p{margin:0;font-size:.86rem;opacity:.9;line-height:1.35}
+.layer .chip{font-family:var(--font-mono);font-size:.72rem;background:var(--card);color:var(--card-ink);padding:4px 8px;border-radius:6px;white-space:nowrap}
+.layer.hl{background:var(--hi);color:var(--hi-ink);border-color:var(--hi)}
+.layer.hl .chip{background:var(--hi-ink);color:var(--hi)}
+@media (max-width:560px){.layer{grid-template-columns:minmax(0,1fr)}.layer .chip{justify-self:start;white-space:normal}}
+
+/* ============ COMPONENT: note (paper card with numbered annotations) ============ */
+.note{position:relative;background:var(--card);color:var(--card-ink);border-radius:4px;padding:30px clamp(18px,4vw,40px) 26px;transform:rotate(-.6deg);
+  box-shadow:0 10px 0 -4px var(--stage-deep);max-width:760px}
+.note::before,.note::after{content:"";position:absolute;width:86px;height:26px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.06);top:-12px}
+.note::before{left:22px;transform:rotate(-6deg)} .note::after{right:22px;transform:rotate(5deg)}
+.note h3{font-size:1.6rem;margin-bottom:14px;color:var(--card-ink)}
+.note ol{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:n}
+.note li{counter-increment:n;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+.note li::before{content:counter(n);font-family:var(--font-display);font-size:1.1rem;width:30px;height:30px;border-radius:50%;background:var(--stage);color:var(--stage-ink);display:grid;place-items:center}
+.note .eq{font-family:var(--font-mono);font-size:.9rem;background:var(--card-2);padding:1px 6px;border-radius:4px;color:var(--card-ink);white-space:nowrap}
+.note .result{margin-top:16px;padding-top:12px;border-top:2px dashed var(--card-sub);font-weight:600}
+.doodle{position:absolute;color:var(--warm)} .doodle svg{width:34px;height:34px;stroke-width:2.4}
+
+/* ============ COMPONENT: stickers (real photos, cut-out style) ============ */
+.stickers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;margin-top:30px}
+.sticker{margin:0;display:grid;gap:8px;justify-items:center;text-align:center}
+.sticker img{width:100%;aspect-ratio:4/3;object-fit:cover;border:7px solid var(--card);border-radius:10px;box-shadow:0 8px 0 -3px var(--stage-deep);background:var(--card)}
+.sticker:nth-child(odd) img{transform:rotate(-1.5deg)} .sticker:nth-child(even) img{transform:rotate(1.2deg)}
+.sticker figcaption{font-family:var(--font-display);text-transform:uppercase;font-size:1.3rem;color:var(--warm);line-height:1}
+.sticker figcaption small{display:block;font-family:var(--font-body);text-transform:none;font-size:.85rem;color:var(--stage-ink);margin-top:4px;line-height:1.3}
+
+/* ============ COMPONENT: versus (what you see vs what happens) ============ */
+.versus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);border-radius:16px;overflow:hidden;border:1.5px solid var(--stage-line)}
+.versus > div{padding:14px 16px;border-top:1.5px solid var(--stage-line)}
+.versus .h{font-family:var(--font-display);text-transform:uppercase;font-size:1.4rem;border-top:0}
+.versus .l{background:var(--stage-deep)}
+.versus .r{background:var(--card);color:var(--card-ink)}
+.versus .h.r{background:var(--hi);color:var(--hi-ink)}
+.versus .l b{font-family:var(--font-display);font-weight:400;text-transform:uppercase;font-size:1.2rem;letter-spacing:.02em}
+
+/* ============ COMPONENT: debate ============ */
+.debate{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.side{border-radius:16px;padding:20px;background:var(--stage-deep);border:1.5px solid var(--stage-line);display:grid;gap:10px;align-content:start}
+.side h3{font-size:2.2rem}
+.side.bear h3{color:var(--warm)} .side.bull h3{color:var(--hi)}
+.side ul{margin:0;padding-left:1.1em;display:grid;gap:8px;font-size:.95rem}
+.verdict{margin-top:20px;background:var(--card);color:var(--card-ink);border-radius:14px;padding:16px 18px;font-size:1.02rem}
+.verdict b{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;display:block;color:var(--card-sub);margin-bottom:4px}
+
+/* ============ COMPONENT: build-at-25 cards ============ */
+.builds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+.build{background:var(--card);color:var(--card-ink);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.build h3{font-size:1.5rem}
+.build dl{margin:0;display:grid;gap:8px}
+.build dt{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--card-sub)}
+.build dd{margin:0;font-size:.92rem;line-height:1.4}
+
+
+/* ============ COMPONENT: waterfall (where every 100 goes) ============ */
+.wf{display:grid;gap:7px}
+.wf .row{display:grid;grid-template-columns:minmax(96px,1.1fr) minmax(0,3fr) 64px;gap:10px;align-items:center;font-size:.86rem}
+.wf .track{position:relative;height:26px}
+.wf .seg{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--card);opacity:.7}
+.wf .row.hl .seg{background:var(--hi);opacity:1}
+.wf .row.total .seg{background:var(--warm);opacity:1}
+.wf .val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.wf .row.hl .lab b{color:var(--hi)}
+.wf .lab small{display:block;opacity:.75;font-size:.72rem;line-height:1.2}
+
+/* ============ COMPONENT: quad (2x2) ============ */
+.quad svg{width:100%;height:auto;display:block}
+.quad text{font-family:var(--font-mono);fill:var(--stage-ink)}
+
+/* ============ lessons + sources ============ */
+.lessons{list-style:none;margin:20px 0 0;padding:0;counter-reset:l;display:grid;gap:14px;max-width:70ch}
+.lessons li{counter-increment:l;display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:baseline;font-size:1.05rem}
+.lessons li::before{content:counter(l,decimal-leading-zero);font-family:var(--font-display);font-size:1.9rem;color:var(--stage);line-height:1}
+.sources{font-size:.88rem;color:var(--muted);display:grid;gap:6px;padding-left:1.1em;margin:12px 0 0}
+.credit{font-family:var(--font-mono);font-size:.62rem;opacity:.75}
+
+/* ============ PRESENT MODE (the deck) ============ */
+.deck-nav{display:none}
+body.present .masthead{position:fixed;inset:0 0 auto;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+body.present #show > section{display:none}
+body.present #show > section.is-current{display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding-top:56px;padding-bottom:84px}
+body.present .talk{display:none}
+body.present #show > section.paperband.is-current{background:var(--paper)}
+body.present .split{grid-template-columns:minmax(0,1fr)}
+body.present .split > .panel{position:static;max-width:1100px;margin:0 auto;width:100%}
+body.present .panel.has-flow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:28px;align-items:center;padding:22px 26px}
+body.present .panel.has-flow .ptitle{grid-column:1/-1}
+body.present .panel.has-flow .stepbar{grid-column:2;grid-row:2;flex-wrap:wrap;background:transparent;padding:0;margin:0;align-self:center}
+body.present .panel.has-flow .stepbar .cap{order:-1;flex-basis:100%;font-size:clamp(1.1rem,2vw,1.5rem);line-height:1.3;margin-bottom:10px}
+body.present .panel.has-flow .legend{grid-column:1}
+@media (max-width:760px){body.present .panel.has-flow{grid-template-columns:minmax(0,1fr)}body.present .panel.has-flow .stepbar{grid-column:1;grid-row:auto}}
+body.present .deck-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;justify-content:center;gap:12px;align-items:center;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.deck-nav button{all:unset;cursor:pointer;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--stage-deep);color:var(--stage-ink);border:1.5px solid var(--stage-line)}
+.deck-nav button:hover{background:var(--hi);color:var(--hi-ink)}
+.deck-nav .count{font-family:var(--font-mono);font-size:.78rem;background:var(--stage-deep);color:var(--stage-ink);padding:6px 12px;border-radius:999px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <span class="stamp">First <b>principles</b> · No. 01</span>
+    <div class="modes" role="group" aria-label="View mode">
+      <button id="m-read" aria-pressed="true">Read</button>
+      <button id="m-present" aria-pressed="false">Present</button>
+    </div>
+  </div>
+</header>
+
+<main id="show">
+
+<!-- 1. COLD OPEN: the whole history as one repeating move -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Cold open</p>
+    <h2 class="shout">Computing keeps getting sold in <em>smaller pieces.</em></h2>
+    <ol class="eras">
+      <li class="era"><i data-lucide="building-2"></i><span class="when">1960s</span><span class="what">Buy the mainframe</span><span class="gloss">A room-sized machine, owned by a company or a university.</span></li>
+      <li class="era"><i data-lucide="monitor"></i><span class="when">1980s</span><span class="what">Buy a PC</span><span class="gloss">One computer, on one desk.</span></li>
+      <li class="era"><i data-lucide="server"></i><span class="when">2000s</span><span class="what">Rent a server</span><span class="gloss">The web runs on someone else's box.</span></li>
+      <li class="era"><i data-lucide="cloud"></i><span class="when">2010s</span><span class="what">Rent by the second</span><span class="gloss">The cloud bills you only while it runs.</span></li>
+      <li class="era"><i data-lucide="coins"></i><span class="when">2020s</span><span class="what">Pay per token</span><span class="gloss">A fragment of a word is now the unit of sale.</span></li>
+      <li class="era next"><i data-lucide="circle-help"></i><span class="when">Next</span><span class="what">Per outcome?</span><span class="gloss">Per answer, per agent-hour, per task done. Nobody knows yet.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 2. THE QUESTION -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="cartouche">
+      <span class="ep tl">EXPLAINER · AI</span><span class="ep br">NOV 2026</span>
+      <h1>Who pays for <em>your prompt?</em></h1>
+      <div class="tally">
+        <div><b class="num">900M+</b><span>weekly ChatGPT users</span></div>
+        <div><b class="num">50M</b><span>of them pay</span></div>
+        <div><b class="num">$725B</b><span>Big Tech AI capex, 2026</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. HOST INTRO -->
+<section class="talkband paperband" data-slide>
+  <div class="wrap prose">
+    <p class="eyebrow">Why I wanted to understand this</p>
+    <p class="ask">If most people use ChatGPT for free, who is paying the bill?</p>
+    <div class="talk">
+      <p>I type a question, I get an answer in a few seconds, and nobody charges me. That's the experience for most of the <span class="mark">900 million people</span> who use ChatGPT every week. Only about 50 million of them pay.</p>
+      <p>Meanwhile, four companies alone plan to spend <b>$725 billion</b> on AI infrastructure this year. Somewhere between my free answer and that number there's a business. I want to follow one prompt through the whole system and see who does the work, who carries the cost, and who gets paid.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. CHAPTER: follow one prompt -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 1</p>
+    <h2 class="q">Where does my prompt <em>actually go?</em></h2>
+    <p class="sub">Follow one sentence from your phone to a power line, and the money back the other way.</p>
+  </div>
+</section>
+
+<section class="talkband paperband" data-slide>
+  <div class="wrap split">
+    <div class="talk prose">
+      <p class="ask">When I press enter, what happens first?</p>
+      <p>The app cuts your sentence into <b>tokens</b>, small chunks of words. Tokens are what the model reads and writes, and they're what everyone in this chain ends up pricing.</p>
+      <p class="ask">Does OpenAI own the computers that answer me?</p>
+      <p>Mostly not. It rents them from cloud providers who build the datacenters. Your prompt joins a batch with many other people's prompts, and the batch runs on GPUs together. That's how one expensive chip serves lots of users at once.</p>
+      <p class="ask">So what does one answer cost in electricity?</p>
+      <p>Sam Altman put the average query at about <span class="mark">0.34 watt-hours</span>, about what an oven uses in a little over a second. Keep that number. It turns out to be the least important cost in the chain.</p>
+      <p class="aside">Press play on the diagram to watch it build, one actor at a time.</p>
+    </div>
+    <div class="panel">
+      <p class="ptitle">Follow one prompt</p>
+      <div class="viz scroller" data-viz="flow"><script type="application/json">
+      {"cols":3,"rows":5,"nodeWidth":"25%","rowK":0.85,
+       "nodes":[
+        {"id":"you","x":1,"y":0,"label":"You","sub":"type a prompt","icon":"smartphone","step":1},
+        {"id":"app","x":1,"y":1,"label":"ChatGPT","sub":"OpenAI's app + model","icon":"message-square","step":1},
+        {"id":"pay","x":0,"y":1,"label":"50M payers","sub":"subscriptions","icon":"credit-card","step":6},
+        {"id":"inv","x":2,"y":1,"label":"Investors","sub":"fund the gap","icon":"landmark","step":7},
+        {"id":"dc","x":1,"y":2,"label":"Datacenter","sub":"Microsoft, Oracle, CoreWeave","icon":"server","step":2},
+        {"id":"grid","x":2,"y":2,"label":"The grid","sub":"~0.34 Wh / prompt","icon":"zap","step":4},
+        {"id":"gpu","x":1,"y":3,"label":"The GPUs","sub":"Nvidia · ~75% gross margin","icon":"cpu","step":3,"hl":true},
+        {"id":"fab","x":1,"y":4,"label":"The fab","sub":"TSMC makes the chips","icon":"factory","step":5}
+       ],
+       "edges":[
+        {"from":"you","to":"app","label":"tokens","step":1},
+        {"from":"app","to":"dc","label":"rents compute","step":2},
+        {"from":"dc","to":"gpu","label":"runs on","step":3},
+        {"from":"dc","to":"grid","label":"power","kind":"money","step":4},
+        {"from":"gpu","to":"fab","label":"made by","step":5},
+        {"from":"pay","to":"app","label":"$","kind":"money","step":6},
+        {"from":"inv","to":"app","label":"$$$","kind":"money","step":7}
+       ],
+       "steps":[
+        "You type a sentence. The app splits it into tokens.",
+        "OpenAI rents most of its computing from cloud providers.",
+        "Your prompt is batched with others and runs on GPUs.",
+        "The datacenter pays for power: about 0.34 Wh per average prompt.",
+        "The GPUs come from Nvidia, built on chips made by TSMC.",
+        "About 1 in 18 weekly users pays. That money flows back up the chain.",
+        "Investors cover the rest, betting the gap closes."
+       ]}
+      </script></div>
+      <div class="legend"><span><i></i>request</span><span><i class="m"></i>money</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. CHAPTER: first principles on cost -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 2</p>
+    <h2 class="q">If electricity is that cheap, <em>what's expensive?</em></h2>
+  </div>
+</section>
+
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="note">
+      <span class="doodle" style="right:-10px;top:30%"><i data-lucide="zap"></i></span>
+      <h3>The electricity bill for one prompt</h3>
+      <ol>
+        <li><span>An average ChatGPT query uses about <span class="eq">0.34 Wh</span> (Altman, June 2025).</span></li>
+        <li><span>Assume power at <span class="eq">$0.08 / kWh</span>, roughly a US industrial rate.</span></li>
+        <li><span><span class="eq">0.00034 kWh × $0.08 = $0.000027</span> per prompt.</span></li>
+        <li><span>A <b>billion</b> prompts would cost about <span class="eq">$27,000</span> in electricity.</span></li>
+      </ol>
+      <p class="result">So power isn't the bill. The bill is the machines and buildings that have to exist before the first prompt arrives, and they get paid for whether you use them or not.</p>
+    </div>
+    <div class="stickers">
+      <figure class="sticker"><img src="img/h100.jpg" alt="An Nvidia H100 GPU module on a table"><figcaption>The GPU<small>Where most of the cost sits</small></figcaption><span class="credit">Photo: Geekerwan · CC BY 3.0</span></figure>
+      <figure class="sticker"><img src="img/datacenter.jpg" alt="Rows of server racks in a datacenter aisle"><figcaption>The datacenter<small>Rented by the hour to model makers</small></figcaption><span class="credit">Photo: Carl Lender · CC BY 2.0</span></figure>
+      <figure class="sticker"><img src="img/grid.jpg" alt="High-voltage transmission towers and lines"><figcaption>The grid<small>Cheap per prompt, scarce at scale</small></figcaption><span class="credit">Photo: Stefan Andrej Shambora · CC BY 2.0</span></figure>
+    </div>
+  </div>
+</section>
+
+<section class="talkband paperband" data-slide>
+  <div class="wrap prose">
+    <p class="ask">If power is cheap per prompt, why does everyone talk about gigawatts?</p>
+    <div class="talk">
+      <p>Because it adds up at scale, and because the grid is slow to build. OpenAI's CFO now describes the company's capacity in power, not chips: about <b>0.2 GW in 2023, 0.6 GW in 2024 and roughly 1.9 GW in 2025</b>. When a company measures itself in gigawatts, the binding constraint is how fast it can plug in more machines.</p>
+      <p>So the cost per prompt is small, and the cost of being <i>able</i> to answer a prompt is enormous. That's the same shape as a railway or a telecom network: a huge fixed cost spread over a very large number of tiny uses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. CHAPTER: who earns -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 3</p>
+    <h2 class="q">Who's making <em>money</em> right now?</h2>
+  </div>
+</section>
+
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap split">
+    <div class="panel" style="background:var(--stage-deep)">
+      <div class="viz bars" data-viz="bars"><script type="application/json">
+      {"title":"Where the money is","unit":"$B","max":800,"ticks":[0,200,400,600,800],
+       "bars":[
+         {"label":"Big Tech capex","sub":"2026 plan","value":725,"note":"+77% YoY"},
+         {"label":"Nvidia data center","sub":"FY ended Jan 2026","value":193.7,"note":"75% gross margin"},
+         {"label":"OpenAI revenue","sub":"run-rate, Feb 2026","value":25,"note":"29× smaller","hl":true}
+       ],
+       "source":"FT via ResultSense; NVIDIA 8-K; The Information via Techloy",
+       "footnote":"Different 12-month windows. Directional only."}
+      </script></div>
+    </div>
+    <div class="viz" data-viz="stack"><script type="application/json">
+      {"layers":[
+        {"name":"Apps","what":"Products built on top of models. Where you'd start.","chip":"thin margins today"},
+        {"name":"Models","what":"OpenAI, Anthropic, Google. Train and serve the models.","chip":"$25B run-rate vs ~$600B compute plans"},
+        {"name":"Cloud","what":"Build and rent the datacenters.","chip":"$725B capex in 2026"},
+        {"name":"Chips","what":"Nvidia designs the GPUs; TSMC makes them.","chip":"~75% gross margin","hl":true},
+        {"name":"Energy","what":"Utilities and grid operators.","chip":"0.34 Wh per prompt"}
+      ]}
+    </script></div>
+  </div>
+</section>
+
+<section class="talkband paperband" data-slide>
+  <div class="wrap prose">
+    <p class="ask">So who is actually profitable in this chain?</p>
+    <div class="talk">
+      <p>Today, the clearest answer is the chip layer. In the quarter that ended in January 2026, Nvidia kept <span class="mark">75 cents of gross profit on every dollar</span> of sales, and its data center business brought in $193.7 billion over the year.</p>
+      <p>Everyone above that layer is spending ahead of revenue. The four biggest cloud companies plan to spend about $725 billion this year, up 77% from 2025. OpenAI, the biggest model company, was running at about $25 billion a year in revenue in February. The spending is roughly <b>29 times</b> that revenue.</p>
+      <p class="aside">These numbers cover different 12-month windows and different companies, so read them as proportions, not as a ledger.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. ILLUSION VS REALITY -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">What you see vs what happens</p>
+    <div class="versus" style="margin-top:16px">
+      <div class="h l">You see</div><div class="h r">What actually happens</div>
+      <div class="l"><b>Free</b></div><div class="r">About 94% of weekly users pay nothing. Roughly 50M subscribers and a lot of investor money cover the bill.</div>
+      <div class="l"><b>Instant</b></div><div class="r">Your prompt waits a moment to join a batch, then runs on GPUs in a datacenter OpenAI mostly rents.</div>
+      <div class="l"><b>Weightless</b></div><div class="r">About 0.34 Wh of electricity, plus a share of hardware that was bought before you ever asked.</div>
+      <div class="l"><b>One company</b></div><div class="r">At least five layers get involved: the app, the cloud, the chip designer, the fab and the grid.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. DEBATE -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 4</p>
+    <h2 class="q">Is this a <em>bubble</em> or a lag?</h2>
+  </div>
+</section>
+
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="debate">
+      <div class="side bear"><h3>Bubble</h3>
+        <ul>
+          <li>Four companies plan <b>$725B</b> of AI capex in 2026 against OpenAI's <b>$25B</b> revenue run-rate.</li>
+          <li>OpenAI has reportedly lined up about <b>$600B</b> of compute spending through 2030.</li>
+          <li>The one layer clearly making money sells to everyone else at a <b>75%</b> gross margin, and that margin is a cost for the rest of the stack.</li>
+        </ul>
+      </div>
+      <div class="side bull"><h3>Lag</h3>
+        <ul>
+          <li>OpenAI's revenue went from about <b>$2B</b> (2023) to <b>$6B</b> (2024) to <b>$20B+</b> (2025).</li>
+          <li>Its compute grew about <b>9.5×</b> over the same period, and revenue kept pace, per its CFO.</li>
+          <li><b>50M</b> people pay for ChatGPT about three years after it launched.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="verdict"><b>Where I've landed for now</b>Usage is real and so is the bill. The bet is whether the cost of each token falls faster than demand grows. If it does, today's capex looks early. If it doesn't, it looks like overbuilding.</div>
+  </div>
+</section>
+
+<!-- 9. WHAT WOULD YOU BUILD -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 5</p>
+    <h2 class="q">If I were 25, <em>where would I build?</em></h2>
+    <div class="builds" style="margin-top:20px;width:100%">
+      <div class="build"><h3>Token cutters</h3><dl><dt>The idea</dt><dd>Route each request to the cheapest model that can answer it well.</dd><dt>Why now</dt><dd>GPU time is the expensive part, so every token saved is margin for your customer.</dd><dt>What could kill it</dt><dd>Model makers building the same routing in.</dd></dl></div>
+      <div class="build"><h3>Price per outcome</h3><dl><dt>The idea</dt><dd>A vertical AI product priced per result: a claim filed, a ticket closed.</dd><dt>Why now</dt><dd>Selling per seat doesn't fit software that does the work itself.</dd><dt>What could kill it</dt><dd>Outcomes that are hard to measure or verify.</dd></dl></div>
+      <div class="build"><h3>Power for compute</h3><dl><dt>The idea</dt><dd>Siting, storage and on-site power for datacenters.</dd><dt>Why now</dt><dd>Capacity is now measured in gigawatts, and the grid is the slowest thing to build.</dd><dt>What could kill it</dt><dd>Long permits and heavy capital needs.</dd></dl></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. LESSONS -->
+<section class="talkband paperband" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">The lessons I've written down</p>
+    <ol class="lessons">
+      <li>The electricity for one prompt is tiny. The real cost is the capital that has to exist before you ask.</li>
+      <li>Most users don't pay. About 1 in 18 weekly ChatGPT users does.</li>
+      <li>Today the margin sits with the chip layer, at roughly 75 cents per dollar.</li>
+      <li>Capex is running far ahead of model revenue: about $725B against $25B.</li>
+      <li>The unit of AI capacity is now the gigawatt, so power is the bottleneck to watch.</li>
+      <li>If you're building, sit where costs fall for you, or where usage is already guaranteed.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 11. SOURCES -->
+<section class="talkband paperband">
+  <div class="wrap prose">
+    <p class="eyebrow">Sources</p>
+    <ol class="sources">
+      <li><a href="https://www.ciol.com/news/chatgpt-passes-900-million-weekly-users-as-paid-base-grows-11168095">ChatGPT passes 900 million weekly users (Nick Turley, Feb 27 2026) · CIOL</a></li>
+      <li><a href="https://www.eweek.com/news/openai-revenue-compute-climbs/">OpenAI revenue and compute growth, per CFO Sarah Friar · eWeek, Jan 2026</a></li>
+      <li><a href="https://www.techloy.com/openai-hits-25-billion-in-annualized-revenue-while-anthropic-surges-to-19-billion/">OpenAI at $25B annualized revenue; ~$600B compute through 2030 (The Information) · Techloy, Mar 2026</a></li>
+      <li><a href="https://www.resultsense.com/news/2026-04-30-hyperscaler-ai-capex-725bn">Big Four hyperscaler AI capex $725B for 2026 (FT data) · ResultSense, Apr 2026</a></li>
+      <li><a href="https://www.sec.gov/Archives/edgar/data/1045810/000104581026000019/q4fy26pr.htm">NVIDIA Q4 and fiscal 2026 results · SEC 8-K, Feb 2026</a></li>
+      <li><a href="https://www.thestar.com.my/tech/tech-news/2025/06/15/one-chatgpt-query-uses-same-energy-as-a-second-of-baking-openai-says">Altman: about 0.34 Wh per average query · The Star, Jun 2025</a></li>
+    </ol>
+    <p class="eyebrow" style="margin-top:22px">Photos (Wikimedia Commons)</p>
+    <ol class="sources">
+      <li><a href="https://commons.wikimedia.org/wiki/File:NVIDIA_H100_(%E6%9E%81%E5%AE%A2%E6%B9%BEGeekerwan)_011.png">NVIDIA H100 · Geekerwan · CC BY 3.0</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:Datacenter_Server_Racks_(22370909788).jpg">Datacenter server racks · Carl Lender · CC BY 2.0</a></li>
+      <li><a href="https://commons.wikimedia.org/wiki/File:High_voltage_transmission_towers_and_lines.jpg">High-voltage transmission towers · Stefan Andrej Shambora · CC BY 2.0</a></li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<nav class="deck-nav" aria-label="Slides">
+  <button id="d-prev" aria-label="Previous"><i data-lucide="arrow-left"></i></button>
+  <span class="count" id="d-count">1 / 1</span>
+  <button id="d-next" aria-label="Next"><i data-lucide="arrow-right"></i></button>
+</nav>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+/* ================= ENGINE ================= */
+(function(){
+const icons=()=>{try{window.lucide&&lucide.createIcons({attrs:{"stroke-width":2}})}catch(e){}};
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const NS="http://www.w3.org/2000/svg";
+const sv=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const R={};
+
+/* ---- flow: nodes on a grid, rail edges, step-by-step build ---- */
+R.flow=(host,d)=>{
+  const box=el("div","flow");const rows=d.rows||3,rowK=d.rowK||.62,rowMin=d.rowMin||104;
+  const svg=sv("svg",{class:"edges"});box.appendChild(svg);
+  const nodes={};
+  d.nodes.forEach(n=>{
+    const e=el("div","node"+(n.hl?" hl":""),`<span class="ic"><i data-lucide="${esc(n.icon||"circle")}"></i></span><b>${esc(n.label)}</b>${n.sub?`<small>${esc(n.sub)}</small>`:""}`);
+    e.style.left=((n.x+.5)/d.cols*100)+"%";e.style.top=((n.y+.5)/rows*100)+"%";
+    e.style.setProperty("--nw",n.w||d.nodeWidth||"29%");e.dataset.step=n.step||1;box.appendChild(e);nodes[n.id]=e;
+  });
+  host.appendChild(box);
+  const N=d.steps?d.steps.length:1;
+  let cur=N;               // complete at rest
+  let active=false;
+  const bar=el("div","stepbar",`<button aria-label="Previous step"><i data-lucide="chevron-left"></i></button><button aria-label="Play the build"><i data-lucide="play"></i></button><div class="cap"></div><button aria-label="Next step"><i data-lucide="chevron-right"></i></button>`);
+  host.after(bar);
+  const [bPrev,bPlay,cap,bNext]=bar.children;
+  const clip=(a,b)=>{ // point on a's rect border toward b
+    const ax=a.x+a.w/2,ay=a.y+a.h/2,bx=b.x+b.w/2,by=b.y+b.h/2,dx=bx-ax,dy=by-ay;
+    const sx=dx?(a.w/2+6)/Math.abs(dx):1e9,sy=dy?(a.h/2+6)/Math.abs(dy):1e9,s=Math.min(sx,sy);
+    return [ax+dx*s,ay+dy*s];};
+  const panel=host.closest(".panel");if(panel)panel.classList.add("has-flow");
+  function size(){
+    const pres=document.body.classList.contains("present");
+    const w=box.clientWidth;let h=Math.max(w*rows*rowK/d.cols,rows*rowMin);
+    if(pres)h=Math.max(rows*64,Math.min(h,innerHeight-230));   // a slide must fit the screen
+    box.style.height=h+"px";
+    box.classList.toggle("tight",h/rows<100);
+  }
+  function draw(){
+    size();svg.innerHTML="";const o=box.getBoundingClientRect();
+    const r=e=>{const q=e.getBoundingClientRect();return{x:q.left-o.left,y:q.top-o.top,w:q.width,h:q.height}};
+    (d.edges||[]).forEach(ed=>{
+      const A=nodes[ed.from],B=nodes[ed.to];if(!A||!B)return;
+      const a=r(A),b=r(B),[x1,y1]=clip(a,b),[x2,y2]=clip(b,a);
+      const g=sv("g",{class:"edge"+(ed.kind==="money"?" money":"")});g.dataset.step=ed.step||1;
+      const p=`M${x1},${y1} L${x2},${y2}`;
+      g.appendChild(sv("path",{d:p,class:"rail"}));g.appendChild(sv("path",{d:p,class:"rail-in"}));
+      const ang=Math.atan2(y2-y1,x2-x1),L=11;
+      const tip=[[x2,y2],[x2-L*Math.cos(ang-.45),y2-L*Math.sin(ang-.45)],[x2-L*Math.cos(ang+.45),y2-L*Math.sin(ang+.45)]];
+      g.appendChild(sv("polygon",{points:tip.map(p=>p.join(",")).join(" "),class:"tip"}));
+      if(ed.label){const flat=Math.abs(x2-x1)>Math.abs(y2-y1),w=ed.label.length*6.6+12;
+        // labels sit beside the rail: above a horizontal one, right of a vertical one
+        const mx=(x1+x2)/2+(flat?0:w/2+8),my=(y1+y2)/2-(flat?14:0);
+        g.appendChild(sv("rect",{x:mx-w/2,y:my-9,width:w,height:18,rx:9,class:"lbl-bg"}));
+        const t=sv("text",{x:mx,y:my+3.5,"text-anchor":"middle"});t.textContent=ed.label;g.appendChild(t);}
+      svg.appendChild(g);
+    });
+    paint();
+  }
+  function paint(){
+    box.querySelectorAll("[data-step]").forEach(e=>{
+      const s=+e.dataset.step;e.classList.toggle("ghost",s>cur);
+      e.classList.toggle("now",active&&s===cur&&e.classList.contains("node"));
+    });
+    cap.innerHTML=active?`<b>STEP ${cur} OF ${N}</b>${esc(d.steps[cur-1])}`:`<b>${N} STEPS</b>Press play to watch it build, or step through.`;
+  }
+  let timer=null;
+  const stop=()=>{clearInterval(timer);timer=null};
+  const go=s=>{active=true;cur=Math.max(1,Math.min(N,s));paint()};
+  bPrev.onclick=()=>{stop();go(active?cur-1:N)};
+  bNext.onclick=()=>{stop();go(active?cur+1:1)};
+  bPlay.onclick=()=>{stop();go(1);timer=setInterval(()=>{if(cur>=N)return stop();go(cur+1)},2600)};
+  host._flow={reset:()=>{stop();go(1)},next:()=>{if(!active)go(1);else if(cur<N){go(cur+1)}else return false;return true},
+              prev:()=>{if(active&&cur>1){go(cur-1);return true}return false},rest:()=>{stop();active=false;cur=N;paint()}};
+  let raf=0;const later=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)};
+  new ResizeObserver(later).observe(box);box.addEventListener("redraw",later);addEventListener("resize",later);
+  draw();
+};
+
+/* ---- bars: one highlighted bar, value labels, source pill ---- */
+R.bars=(host,d)=>{
+  const W=560,H=360,L=56,Rm=16,T=56,B=70,iw=W-L-Rm,ih=H-T-B,n=d.bars.length,max=d.max||Math.max(...d.bars.map(b=>b.value))*1.15;
+  const s=sv("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":d.title});
+  const tt=sv("text",{x:L-40,y:30,class:"big",fill:"var(--warm)"});tt.textContent=(d.title||"").toUpperCase();tt.style.fill="var(--warm)";s.appendChild(tt);
+  (d.ticks||[0,max/2,max]).forEach(v=>{const y=T+ih-v/max*ih;
+    s.appendChild(sv("line",{x1:L,x2:W-Rm,y1:y,y2:y,stroke:"var(--stage-line)","stroke-width":1}));
+    const t=sv("text",{x:L-8,y:y+4,"text-anchor":"end","font-size":11});t.textContent=v;s.appendChild(t);});
+  const slot=iw/n,bw=Math.min(96,slot*.56);
+  d.bars.forEach((b,i)=>{const h=b.value/max*ih,x=L+slot*i+(slot-bw)/2,y=T+ih-h;
+    s.appendChild(sv("rect",{x,y,width:bw,height:Math.max(h,2),rx:3,fill:b.hl?"var(--hi)":"var(--card)","fill-opacity":b.hl?1:.6}));
+    const v=sv("text",{x:x+bw/2,y:y-(b.note?24:8),"text-anchor":"middle","font-size":17,"font-weight":600});v.textContent="$"+b.value+"B";s.appendChild(v);
+    if(b.note){const nt=sv("text",{x:x+bw/2,y:y-8,"text-anchor":"middle","font-size":10.5,opacity:.85});nt.textContent=b.note;s.appendChild(nt);}
+    const lb=sv("text",{x:x+bw/2,y:T+ih+20,"text-anchor":"middle","font-size":12.5,"font-weight":600});lb.textContent=b.label.toUpperCase();lb.style.fill=b.hl?"var(--hi)":"var(--stage-ink)";s.appendChild(lb);
+    if(b.sub){const sb=sv("text",{x:x+bw/2,y:T+ih+36,"text-anchor":"middle","font-size":10,opacity:.75});sb.textContent=b.sub;s.appendChild(sb);}
+  });
+  host.appendChild(s);
+  host.appendChild(el("div","foot",`<span>${esc(d.footnote||"")}</span><span class="srcpill">Source: ${esc(d.source||"")}</span>`));
+};
+
+/* ---- stack: layers of an industry, one highlighted ---- */
+R.stack=(host,d)=>{const w=el("div","stack");
+  d.layers.forEach(l=>w.appendChild(el("div","layer"+(l.hl?" hl":""),`<h3>${esc(l.name)}</h3><p>${esc(l.what)}</p><span class="chip">${esc(l.chip||"")}</span>`)));
+  host.appendChild(w);};
+
+
+/* ---- waterfall: follow 100 units of money down to each actor ---- */
+R.waterfall=(host,d)=>{const w=el("div","wf"),tot=d.total||100,u=d.unit||"";
+  if(d.title)host.appendChild(el("p","ptitle",esc(d.title)));
+  w.appendChild(el("div","row total",`<span class="lab"><b>${esc(d.start||"You pay")}</b></span><span class="track"><span class="seg" style="left:0;width:100%"></span></span><span class="val">${u}${tot}</span>`));
+  let run=tot;
+  d.parts.forEach(p=>{run-=p.value;const left=run/tot*100,wd=p.value/tot*100;
+    w.appendChild(el("div","row"+(p.hl?" hl":""),`<span class="lab"><b>${esc(p.label)}</b>${p.note?`<small>${esc(p.note)}</small>`:""}</span><span class="track"><span class="seg" style="left:${left}%;width:${Math.max(wd,.6)}%"></span></span><span class="val">${u}${p.value}</span>`));});
+  host.appendChild(w);
+  if(d.source)host.appendChild(el("div","foot",`<span>${esc(d.footnote||"")}</span><span class="srcpill">Source: ${esc(d.source)}</span>`));};
+
+/* ---- quad: a 2x2 with named quadrants and plotted players ---- */
+R.quad=(host,d)=>{const W=520,H=440,P=46,iw=W-P*2,ih=H-P*2,s=sv("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":d.title||"2x2"});
+  [[0,0],[1,0],[0,1],[1,1]].forEach(([i,j],k)=>{s.appendChild(sv("rect",{x:P+i*iw/2,y:P+j*ih/2,width:iw/2,height:ih/2,fill:k===d.hlQuad?"var(--hi)":"var(--stage-deep)","fill-opacity":k===d.hlQuad?.22:1,stroke:"var(--stage-line)"}));
+    if(d.quadrants&&d.quadrants[k]){const t=sv("text",{x:P+i*iw/2+10,y:P+j*ih/2+20,"font-size":11,opacity:.75});t.textContent=d.quadrants[k].toUpperCase();s.appendChild(t);}});
+  const ax=(txt,x,y,rot)=>{const t=sv("text",{x,y,"text-anchor":"middle","font-size":11.5,transform:rot?`rotate(-90 ${x} ${y})`:""});t.textContent=txt;s.appendChild(t)};
+  ax(`${d.x.lo}  ←  ${d.x.label}  →  ${d.x.hi}`,W/2,H-14);ax(`${d.y.lo}  ←  ${d.y.label}  →  ${d.y.hi}`,16,H/2,true);
+  d.items.forEach(it=>{const cx=P+it.x*iw,cy=P+(1-it.y)*ih;
+    s.appendChild(sv("circle",{cx,cy,r:it.hl?9:7,fill:it.hl?"var(--hi)":"var(--card)",stroke:"var(--stage-deep)","stroke-width":2}));
+    const t=sv("text",{x:cx+(it.x>.75?-13:13),y:cy+4,"text-anchor":it.x>.75?"end":"start","font-size":12.5,"font-weight":600});t.textContent=it.label;s.appendChild(t);});
+  host.appendChild(s);};
+
+document.querySelectorAll(".viz[data-viz]").forEach(h=>{
+  const j=h.querySelector('script[type="application/json"]');if(!j)return;
+  try{R[h.dataset.viz]&&R[h.dataset.viz](h,JSON.parse(j.textContent))}catch(e){h.appendChild(el("p","mono","Diagram data error: "+esc(e.message)))}
+});
+icons();
+
+/* ---- Read / Present modes ---- */
+const body=document.body,slides=[...document.querySelectorAll("#show > [data-slide]")];
+let idx=0;
+const bRead=document.getElementById("m-read"),bPres=document.getElementById("m-present"),cnt=document.getElementById("d-count");
+function show(i){idx=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle("is-current",k===idx));cnt.textContent=`${idx+1} / ${slides.length}`;
+  const f=slides[idx].querySelector(".viz[data-viz=flow]");if(f&&f._flow)f._flow.reset();
+  window.scrollTo(0,0);}
+function setMode(p){body.classList.toggle("present",p);bRead.setAttribute("aria-pressed",!p);bPres.setAttribute("aria-pressed",p);
+  dispatchEvent(new Event("resize"));document.querySelectorAll(".flow").forEach(f=>f.dispatchEvent(new Event("redraw")));
+  if(p){show(idx);if(location.hash!=="#present")history.replaceState(null,"","#present")}
+  else{slides.forEach(s=>s.classList.remove("is-current"));document.querySelectorAll(".viz[data-viz=flow]").forEach(f=>f._flow&&f._flow.rest());
+    if(location.hash==="#present")history.replaceState(null,"",location.pathname+location.search)}}
+bRead.onclick=()=>setMode(false);bPres.onclick=()=>setMode(true);
+const flowOf=()=>{const f=slides[idx].querySelector(".viz[data-viz=flow]");return f&&f._flow};
+const next=()=>{const f=flowOf();if(f&&f.next())return;show(idx+1)};
+const prev=()=>{const f=flowOf();if(f&&f.prev())return;show(idx-1)};
+document.getElementById("d-next").onclick=next;document.getElementById("d-prev").onclick=prev;
+addEventListener("keydown",e=>{if(!body.classList.contains("present"))return;
+  if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();next()}
+  else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();prev()}
+  else if(e.key==="Escape")setMode(false)});
+addEventListener("hashchange",()=>setMode(location.hash==="#present"));
+if(location.hash==="#present")setMode(true);
+})();
+</script>
+
+</body>
+</html>

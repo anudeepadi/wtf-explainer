@@ -1,0 +1,9 @@
+# analysis inputs: never commit downloaded episodes, captions or frames
+subs/
+vid/
+frames/
+tx/
+*.tar
+*.json3
+__pycache__/
+.DS_Store

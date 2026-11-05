@@ -1,0 +1,941 @@
+---
+name: wtf-explainer
+description: Explain any concept, industry or system from first principles in the style of Nikhil Kamath's WTF podcast, as a follow-the-money story with question-led chapters, build-up architecture diagrams, charts and real photos, delivered as one page that reads as an article and presents as slides. Use when the user asks for a WTF-style, Nikhil Kamath-style or first-principles explainer of a topic.
+---
+
+# WTF-style first-principles explainer
+
+This skill turns a concept ("how does UPI work", "who pays for AI", "why is real estate illiquid") into an **episode on a page**. A curious host asks the dumb questions, follows one transaction through the system, follows the money back, and shows each mechanism as a diagram that builds one actor at a time.
+
+The patterns come from analyzing five WTF episodes (Payments, AI, Travel, EV, Real Estate): their transcripts, about 14,600 video frames, and the moments where the conversation cut to a graphic. This skill copies the *grammar* (structure, question ladder, diagram archetypes, color worlds). It does not copy WTF branding, graphics or Nikhil Kamath's voice.
+
+**The output** is one published HTML artifact built from the template at the end of this file. It has a **Read** mode (a long scrolling explainer) and a **Present** mode (each section becomes a slide, and diagrams build on each arrow-key press). The `#present` link opens straight into the deck.
+
+---
+
+## Step 0: Ask about the format (one question, then go)
+
+Ask with AskUserQuestion before researching:
+
+- **Both: page + present mode (Recommended).** The template as it is.
+- **Scrolling page only.** Delete the `.modes` group and the `.deck-nav`.
+- **Slides only.** Set `data-default="present"` on `<main id="show">` so the page opens as a deck.
+- **PowerPoint file.** Only if they explicitly want a .pptx: build the page anyway (it's the source of the visuals), screenshot each slide at 1920×1080 with Playwright, and use the pptx skill to assemble a deck from those images plus speaker notes taken from the `.talk` text.
+
+If nobody answers, or the session is unattended, build **Both** and say so in one line.
+
+## Step 1: Find the real question
+
+Every episode answers one question that a smart outsider would actually ask. Write it down before researching.
+
+Title formulas that worked:
+
+| Formula | Example |
+|---|---|
+| Money paradox about something everyday | "If UPI is free, who pays for it?" |
+| Who pays, and can it last | "Who's paying for the AI boom, and can it last?" |
+| Contrarian prescription | "Why a 25-year-old should build a hotel, not an app" |
+| National paradox (huge potential, tiny number) | "45 UNESCO sites, 10M real tourists: whose problem is it?" |
+| What it actually costs | "WTF does a payment cost?" |
+| The practical end question first | "I'm 20 with ₹10 crore. Where do I start in real estate?" |
+
+Also choose the **host lens**: investor (multiples, margins, "would you buy it?"), consumer ("I always book direct, am I wrong?"), builder ("what would I build at 25?") or citizen ("is the official number right?"). Most episodes combine investor and builder.
+
+## Step 2: Research (search first, numbers second)
+
+Look everything up, however familiar it feels. Prefer primary sources: filings, company posts, regulators, official statistics. Then reputable press.
+
+Collect at least:
+
+1. **Scale.** Users, volume, money per year. These are the cartouche numbers.
+2. **One unit's economics.** What one transaction costs and how it splits by actor. This feeds the waterfall.
+3. **Then vs now.** One number from before the shift and one from today.
+4. **Margin map.** Who keeps what at each layer. This feeds the stack.
+5. **Growth.** Three data points in a row (e.g. 2023 → 2024 → 2025).
+6. **One comparison.** Another country, incumbent or older system.
+7. **The skeptic's number.** The figure the bear case rests on.
+
+Rules:
+
+- Every number on the page has a source and a date. Run-rate, fiscal year and calendar year are different things, so label which one.
+- Back-of-envelope maths is encouraged, the way the host does live arithmetic. Show the assumption as its own step (e.g. "Assume power at $0.08/kWh").
+- Never invent a split that isn't public. If you estimate, say "estimate" on the visual itself.
+- Keep a running sources list with title, publisher, month and URL. It goes at the end of the page and in your reply.
+
+## Step 3: Decompose from first principles
+
+These are the moves the guests used to make an insight land. Use at least five.
+
+| Move | How to do it |
+|---|---|
+| **Cast by layer** | List the 4–7 actors in the system, each on its own layer (app / network / bank; chips / cloud / models / apps). The cast *is* the architecture. |
+| **Follow one transaction** | One ₹100, one prompt or one order, end to end. Name every actor, count the hops. This is the centerpiece diagram. |
+| **"Why this layer?"** | At each hop, ask whether it exists for a technical reason or a regulatory or historical one. The leftover layers are often the insight (e.g. UPI's sponsor banks exist for regulatory comfort, not technical need). |
+| **Who pays, and why would they?** | When an actor pays and seems to gain nothing, find the cost they avoid. For example, banks pay UPI apps because it's cheaper than running branches and ATMs. |
+| **Unit-economics waterfall** | Where every 100 of the customer's money goes. It often overturns a belief: Visa doesn't take the 2%, the issuing bank does. |
+| **Illusion vs reality** | What the user sees (free, instant) vs what actually happens (cost absorbed, batch settlement). |
+| **History as one verb** | Compress the concept's past into one repeating move: money keeps getting *lighter*; computing keeps getting sold in *smaller pieces*. |
+| **Counterfactual** | Why didn't this exist before? What if everyone switched overnight? Size the answer. |
+| **Another country** | The same problem solved differently elsewhere (US vs India 2FA, Alipay wallets vs UPI accounts). |
+| **Live arithmetic** | Do the sum in front of the reader, with stated assumptions. |
+
+**Insight bar.** The explainer needs at least five non-obvious insights. Each must land through a number, a contrast, a story or an analogy. Test each one: would a smart outsider already know this? If yes, cut it or go one level deeper.
+
+## Step 4: Storyboard the episode
+
+The default arc is 12–16 slides, and every `<section data-slide>` is one slide:
+
+1. **Cold open.** Pick one style:
+   - (a) History as one verb, across 4–6 eras, ending in "?" (the `eras` component).
+   - (b) A stakes montage: 3–4 real, sourced quotes, then the paradox number.
+   - (c) The practical end question asked first.
+   - (d) A national paradox in two numbers.
+2. **The question.** A cartouche with the title and 2–3 scale numbers.
+3. **Why I wanted to understand this.** The host's honest starting point or bias, plus the first dumb question.
+4. **Chapter: follow one transaction.** Chapter card, then a split section: conversation on the left, the flow diagram building on the right.
+5. **Chapter: the first-principles turn.** The back-of-envelope note card, plus real-photo stickers of the physical things involved.
+6. **Chapter: who earns.** Bars, stack or waterfall.
+7. **Illusion vs reality**, or then vs now (`versus`).
+8. **Chapter: the debate.** The strongest bull and bear cases with numbers, then a verdict held loosely, with the condition that would change it.
+9. **Chapter: if I were 25, where would I build?** 3 cards: the idea, why now, what could kill it.
+10. **The lessons I've written down.** 5–7 numbered lines, which is how the host closes each section of an episode.
+11. **Sources and photo credits.**
+
+**Every chapter title is a question.** Draw them from this ladder of question types, which recur across episodes:
+
+- Classify it: is it government, private, or something in between?
+- Who funds it? Who owns it?
+- Who can punish whom?
+- Walk me through what happens when I tap pay.
+- Why is there an extra layer here?
+- Who pays, and why would they?
+- Sanity-check a number: if they earn ₹2 a transaction, how is it $40B a year?
+- Before this existed, how did it work?
+- What changes for the variant (P2P vs merchant, debit vs credit)?
+- What's the moat?
+- Why did the last attempt fail?
+- Explain it like I'm 12, then give me an example.
+- Forced binary: Nvidia or Alphabet?
+- Role swap: if you had to compete with them, what would you build?
+- If I were 25, what would I build?
+
+Conversation bands use the `.ask` chip (labeled "The dumb question") followed by a plain answer of 2–4 short paragraphs. Highlight one fact per band with `.mark`. Put the narration inside `.talk`: Present mode hides it, so slides stay visual.
+
+## Step 5: Pick the visual for each idea
+
+| When the content is… | Draw | Component |
+|---|---|---|
+| One transaction passing through actors | Build-up flow, 3 columns, ≤5 rows, ≤9 nodes | `flow` |
+| Where each 100 of money goes | Cascading waterfall | `waterfall` |
+| Who's big vs who's earning | Bar chart with one highlighted bar | `bars` |
+| An industry's layers and who keeps margin | Layered stack with one highlighted layer | `stack` |
+| Players compared on two axes | 2×2 with named quadrants | `quad` |
+| History, eras | Era cards ending in "?" | `eras` |
+| What you see vs what happens; then vs now; country vs country | Two-column contrast | `versus` |
+| Live arithmetic | Taped paper note with numbered steps | `note` |
+| Physical things (chips, machines, places) | Real photos as stickers | `stickers` |
+| A live disagreement | Two-sided debate + verdict | `debate` |
+
+Visual rules (from the frames):
+
+- **One highlight per visual.** The highlighter color marks the single thing to look at: the GPU node, the issuer's slice, the smallest bar. Everything else stays cream or muted.
+- **Diagrams build.** Give each node and edge a `step`, and write one full-sentence caption per step. That's the narration a presenter reads aloud.
+- **Two kinds of edges.** Solid rails are requests or data. Dashed warm rails (`"kind":"money"`) are money. Keep horizontal edge labels to 6 characters or fewer; vertical ones can be longer.
+- **Flow layout.** Run the main chain straight down the middle column, put payers and investors left and right of the node they fund, and keep side effects (the grid, the regulator) on the right. Avoid diagonal edges.
+- **Charts to scale, always sourced.** Every chart carries a source pill and a footnote for caveats (e.g. "different 12-month windows").
+- **Tiny slices.** If fees are 1–2% of the total, the waterfall becomes slivers. Zoom in: make the fee pool the total ("Where the ₹1.85 fee goes").
+- **Every visual earns its place.** It has to show something the prose can't. If it only repeats the paragraph, cut it.
+
+## Step 6: Pick the color world
+
+Each episode lives in one saturated stage color with paper-grain texture, an ornamental frame themed to the subject, chunky condensed caps with an offset shadow, and a lime or yellow highlighter. Pick by topic, then set the `:root` tokens and use that frame class on every stage section.
+
+| Topic | --stage / --stage-deep | --hi | --warm | Frame |
+|---|---|---|---|---|
+| Money, payments, fintech, banking | #4B2BB8 / #2C1878 | #D8F14B | #FFC53D | `frame-guilloche` (banknote) |
+| AI, software, compute, internet | #1E3CC8 / #12278C | #D8F14B | #FFC53D | `frame-blueprint` |
+| Energy, EV, climate, manufacturing | #128A55 / #0A5E3A | #FFE14D | #FF9B42 | `frame-stitch` |
+| Real estate, infrastructure, old-economy assets | #8E1F2A / #5C1119 | #F4CC4E | #F4CC4E | `frame-double` (sunburst) |
+| Travel, consumer, food, hospitality | #B4502C / #7A3015 | #FFE27A | #FFD27A | `frame-stitch` |
+| Health, biotech, longevity | #0E7774 / #08504E | #E8FF6E | #FFB547 | `frame-blueprint` |
+| Media, entertainment, creators | #A8206A / #6E0E44 | #FFE14D | #FFC53D | `frame-stitch` |
+
+Keep `--stage-ink` cream and `--card` cream in every world. Redefine `--stage` and `--stage-deep` slightly darker in the two dark-mode blocks, the same way the template does. Use the highlighter only as a fill behind `--hi-ink` text, or as text on `--stage-deep`.
+
+## Step 7: Real photos, where a photo beats a drawing
+
+- **Use photos for** physical things the reader has never seen up close: components, machines, factories, infrastructure, places, products.
+- **Draw instead for** concepts and flows.
+- **Never use** photos of real people (public figures included), logos or brand artwork, or AI-generated images.
+
+Source photos from Wikimedia Commons with the script at the end of this file. It only accepts CC0, public domain, CC BY and CC BY-SA, and it rejects AI-generated files.
+
+```bash
+python3 -I commons.py search "data center server racks" 6      # pick a "usable": true result
+python3 -I commons.py get "File:Exact title.jpg" img/name.jpg   # prints license + author
+```
+
+Then:
+
+- Resize each photo to 800px or less, JPEG quality 80 (PIL).
+- Put the author and license under each sticker (`.credit`) and in the photo sources list.
+- Publish the images next to the page through the Artifact tool's `files` map: `{"img/name.jpg": "/abs/path/img/name.jpg"}`.
+- If Commons has nothing good, draw the thing instead.
+
+## Step 8: Build, check once, publish
+
+1. Copy the template below into a working folder as `index.html`. Replace every `{{placeholder}}`, delete the sections you don't use, and repeat the ones you need. Keep `data-slide` on every section that should be a slide.
+2. Set the `<title>` to the question itself ("Who Pays for Your Prompt?"). Set the stamp's topic tag.
+3. Use [Lucide](https://lucide.dev/icons) names for icons, for example: smartphone, app-window, message-square, server, cpu, factory, zap, credit-card, landmark, network, building-2, monitor, cloud, coins, banknote, receipt, shield-check, truck, store, plane, hotel, home, battery-charging, car, globe, users, scale, trending-up, trending-down, circle-help.
+4. Load the `artifact-design` skill before the first publish, as the Artifact tool requires. The template already follows its page contract: tokens, both themes, gutters, title.
+5. Check once: one Playwright pass that screenshots desktop light at 1280px, phone dark at 390px, and Present mode at 1280×720 on the flow slide. Confirm there's no horizontal scroll and no console errors. Fix what you see once, then publish.
+6. Publish with the Artifact tool. Pass `icon: "diagram"`, a one-sentence `description`, and `files` for the images.
+7. In your reply, give one line on what the page is, the Present-mode tip (the Present button, or arrow keys), and the sources list.
+
+## Voice
+
+- **Write as a first-person host.** "I" is a curious outsider who admits what they don't know.
+- **Ask the dumb question,** then answer it with a mechanism or a number. Define jargon the first time it appears.
+- **Use the reader's own world for analogies** (email between Gmail and Hotmail for interoperability). Use at most one per chapter.
+- **Steelman both sides.** Say where you land and what would change your mind.
+- **Use plain, short sentences.** No hype, no em-dash asides, no "not X but Y" constructions.
+- **Don't impersonate Nikhil Kamath** or put words in any real person's mouth. Every quote must be real and sourced.
+- **Keep WTF branding out:** no logo, no matchbox, no "Sparked by curiosity". The series stamp is "First principles".
+
+## Quality bar (check before publishing)
+
+1. Would a smart outsider learn at least five things they didn't know?
+2. Is every chapter title a question a curious person would actually ask?
+3. Is one transaction followed end to end, with the money traced back?
+4. Does every visual show something the prose can't, with exactly one highlight?
+5. Is every number sourced and dated, and every estimate labeled?
+6. Is there a real disagreement, and a verdict?
+7. Does it end with what to build and the lessons written down?
+8. In Present mode, with the `.talk` text hidden, does the story still make sense slide by slide?
+
+---
+
+## Template (`index.html`)
+
+The engine (CSS and JS) is complete. Only the content between `<main>` tags and the `:root` world tokens change per topic. Components read JSON from a `<script type="application/json">` inside each `.viz[data-viz=…]` element. A bad JSON block shows an inline error instead of breaking the page.
+
+```html
+<title>{{PAGE NAME}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:ital,wght@0,400;0,600;0,800;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* ============ WORLD (swap per topic) ============
+   Layout: an "episode on a page": saturated stage bands (cold open, chapter
+   cards, diagrams) alternate with paper bands (the conversation). One stage
+   colour per topic, one highlighter for the thing to look at. */
+:root{
+  --stage:#1E3CC8; --stage-deep:#12278C; --stage-ink:#FFF7E3; --stage-line:rgba(255,247,227,.30);
+  --hi:#D8F14B; --hi-ink:#141C44;          /* highlighter: the single thing to look at */
+  --warm:#FFC53D;                          /* money, numbers, titles on stage */
+  --card:#FFFBF0; --card-2:#EFE7D2; --card-ink:#151B3F; --card-sub:#59618A; --grid:rgba(255,247,227,.13);
+  --paper:#F4F0E4; --paper-2:#EAE4D3; --ink:#1A1E31; --muted:#5A5F74; --rule:#D3CAB3;
+  --font-display:"Anton","Impact","Arial Narrow Bold",sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --frame:blueprint;  /* documentation only: blueprint | guilloche | stitch | double | torn */
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --stage:#1A33AD; --stage-deep:#0D1C66;
+  --paper:#11131E; --paper-2:#191C2B; --ink:#ECE8DC; --muted:#A2A6B8; --rule:#2B2F45; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#1A33AD; --stage-deep:#0D1C66;
+  --paper:#11131E; --paper-2:#191C2B; --ink:#ECE8DC; --muted:#A2A6B8; --rule:#2B2F45; color-scheme:dark}
+
+/* ============ ENGINE: base ============ */
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--font-body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.prose{max-width:64ch}
+.prose p{margin:0 0 1em}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:.98;text-wrap:balance;margin:0}
+.mono{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.04em}
+.eyebrow{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.mark{background:var(--hi);color:var(--hi-ink);padding:0 .18em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--hi);outline-offset:3px}
+
+/* masthead */
+.masthead{background:var(--stage-deep);color:var(--stage-ink)}
+.masthead .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.stamp{font-family:var(--font-display);text-transform:uppercase;font-size:1.05rem;letter-spacing:.06em;border:1.5px solid var(--stage-line);padding:3px 10px;border-radius:4px}
+.stamp b{color:var(--hi);font-weight:400}
+.modes{display:flex;border:1.5px solid var(--stage-line);border-radius:999px;overflow:hidden}
+.modes button{all:unset;cursor:pointer;font-family:var(--font-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px}
+.modes button[aria-pressed="true"]{background:var(--hi);color:var(--hi-ink)}
+
+/* ============ ENGINE: stage bands + texture + frames ============ */
+.stage{position:relative;background:var(--stage);color:var(--stage-ink);isolation:isolate;overflow:hidden}
+.stage::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.22;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.stage .wrap{padding-block:clamp(48px,8vw,96px)}
+/* frame: blueprint */
+.frame-blueprint{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;background-position:-1px -1px}
+.frame-blueprint::after,.frame-stitch::after,.frame-double::after,.frame-guilloche::after{content:"";position:absolute;inset:14px;pointer-events:none;z-index:-1}
+.frame-blueprint{background-color:var(--stage)}
+.frame-blueprint::after{border:1.5px solid var(--stage-line);
+  background:linear-gradient(var(--stage-ink),var(--stage-ink)) 0 0/18px 3px no-repeat,linear-gradient(var(--stage-ink),var(--stage-ink)) 0 0/3px 18px no-repeat,
+             linear-gradient(var(--stage-ink),var(--stage-ink)) 100% 100%/18px 3px no-repeat,linear-gradient(var(--stage-ink),var(--stage-ink)) 100% 100%/3px 18px no-repeat}
+/* other frames, ready for other worlds */
+.frame-stitch::after{border:2px dashed var(--stage-line);border-radius:6px}
+.frame-double::after{border:3px double var(--stage-line)}
+.frame-double{background-image:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.035) 0 6deg,transparent 6deg 12deg)}
+.frame-guilloche::after{border:2px solid var(--stage-line);outline:1px solid var(--stage-line);outline-offset:5px;border-radius:10px}
+.frame-guilloche{background-image:repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.07) 0 1px,transparent 1px 9px)}
+
+/* big stage type with offset shadow */
+.shout{font-size:clamp(2.6rem,7.5vw,5.6rem);color:var(--stage-ink);text-shadow:.045em .045em 0 var(--stage-deep)}
+.shout em{font-style:normal;color:var(--hi)}
+
+/* ============ COMPONENT: eras (cold open timeline) ============ */
+.eras{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.era{background:var(--stage-deep);border:1.5px solid var(--stage-line);border-radius:12px;padding:16px 14px;display:grid;gap:8px;align-content:start}
+.era .when{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;color:var(--warm)}
+.era .what{font-family:var(--font-display);text-transform:uppercase;font-size:1.25rem;line-height:1.05}
+.era .gloss{font-size:.88rem;opacity:.85;line-height:1.4}
+.era svg{width:30px;height:30px;stroke:var(--stage-ink)}
+.era.next{background:transparent;border-style:dashed}
+.era.next .what{color:var(--hi)}
+
+/* ============ COMPONENT: title cartouche ============ */
+.cartouche{position:relative;margin:0 auto;max-width:860px;text-align:center;padding:clamp(28px,5vw,56px) clamp(16px,4vw,48px);
+  background:var(--stage-deep);border-radius:28px;border:2px solid var(--stage-line);box-shadow:0 0 0 8px var(--stage),0 0 0 10px var(--stage-line)}
+.cartouche .ep{position:absolute;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;opacity:.75}
+.cartouche .ep.tl{top:14px;left:20px}.cartouche .ep.br{bottom:14px;right:20px}
+.cartouche h1{font-size:clamp(2.4rem,8vw,5.4rem);text-shadow:.04em .04em 0 var(--stage)}
+.cartouche h1 em{font-style:normal;color:var(--hi)}
+.tally{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 28px;margin-top:26px}
+.tally div{display:grid;gap:2px}
+.tally b{font-family:var(--font-display);font-weight:400;font-size:clamp(1.6rem,4vw,2.3rem);color:var(--warm);line-height:1}
+.tally span{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+
+/* ============ COMPONENT: chapter card ============ */
+.chapter .wrap{display:grid;gap:14px;justify-items:start}
+.chapter .q{font-size:clamp(2.2rem,6.5vw,4.6rem);max-width:16ch;text-shadow:.045em .045em 0 var(--stage-deep)}
+.chapter .q em{font-style:normal;color:var(--hi)}
+.chapter .sub{max-width:52ch;opacity:.9}
+
+/* ============ conversation (paper bands) ============ */
+.talkband{padding-block:clamp(40px,6vw,72px)}
+.ask{display:inline-block;position:relative;font-family:var(--font-display);text-transform:uppercase;font-size:clamp(1.25rem,2.6vw,1.6rem);line-height:1.1;
+  background:var(--stage);color:var(--stage-ink);padding:10px 16px 12px;border-radius:14px 14px 14px 4px;margin:8px 0 14px;max-width:34ch}
+.ask::before{content:"The dumb question";display:block;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;color:var(--hi);margin-bottom:4px}
+.aside{border-left:3px solid var(--warm);padding-left:14px;color:var(--muted);font-size:.95rem}
+
+/* split: conversation + diagram panel (the WTF side-panel) */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,4vw,48px);align-items:start}
+.split > .panel{position:sticky;top:16px}
+@media (max-width:860px){.split{grid-template-columns:minmax(0,1fr)}.split > .panel{position:static}}
+
+/* ============ COMPONENT: panel (diagram on a stage card) ============ */
+.panel{background:var(--stage);color:var(--stage-ink);border-radius:18px;padding:18px;position:relative;isolation:isolate;overflow:hidden}
+.panel::after{content:"";position:absolute;inset:8px;border:1.5px solid var(--stage-line);border-radius:12px;pointer-events:none;z-index:-1}
+.panel .ptitle{font-family:var(--font-display);text-transform:uppercase;font-size:1.35rem;color:var(--warm);margin:4px 4px 12px;line-height:1.05}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ============ COMPONENT: flow (build-up diagram) ============ */
+.flow{position:relative;min-width:300px}
+.flow svg.edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.node{position:absolute;transform:translate(-50%,-50%);width:var(--nw,30%);min-width:92px;background:var(--card);color:var(--card-ink);border-radius:10px;
+  padding:20px 8px 9px;text-align:center;box-shadow:0 3px 0 var(--stage-deep);transition:opacity .35s,transform .35s,box-shadow .35s}
+.node .ic{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;background:var(--stage-deep);
+  border:2px solid var(--card);display:grid;place-items:center}
+.node .ic svg{width:15px;height:15px;stroke:var(--stage-ink)}
+.node b{display:block;font-size:.86rem;line-height:1.15}
+.node small{display:block;font-size:.7rem;color:var(--card-sub);line-height:1.2;margin-top:2px}
+.node.hl{background:var(--hi);color:var(--hi-ink)}
+.node.hl small{color:var(--hi-ink);opacity:.75}
+.flow .ghost{opacity:.14}
+.flow.tight .node{padding:17px 6px 7px}.flow.tight .node small{display:none}
+.node.now{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 3px var(--hi),0 3px 0 var(--stage-deep)}
+.edge{transition:opacity .35s}
+.edge .rail{stroke:var(--stage-ink);stroke-width:7;fill:none;stroke-linecap:round;opacity:.9}
+.edge .rail-in{stroke:var(--stage);stroke-width:3;fill:none;stroke-linecap:round}
+.edge.money .rail{stroke:var(--warm)} .edge.money .rail-in{stroke-dasharray:2 7}
+.edge .tip{fill:var(--stage-ink)} .edge.money .tip{fill:var(--warm)}
+.edge text{font-family:var(--font-mono);font-size:10.5px;fill:var(--stage-ink);letter-spacing:.04em}
+.edge .lbl-bg{fill:var(--stage-deep)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:12px 4px 0;font-family:var(--font-mono);font-size:.7rem}
+.legend i{display:inline-block;width:22px;height:6px;border-radius:3px;margin-right:6px;vertical-align:middle;background:var(--stage-ink)}
+.legend i.m{background:repeating-linear-gradient(90deg,var(--warm) 0 5px,transparent 5px 8px);border:1px solid var(--warm)}
+.stepbar{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px;border-radius:12px;background:var(--stage-deep)}
+.stepbar button{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--stage);border:1.5px solid var(--stage-line);flex:none}
+.stepbar button:hover{background:var(--hi);color:var(--hi-ink)}
+.stepbar button svg{width:16px;height:16px}
+.stepbar .cap{flex:1;min-width:0;font-size:.9rem;line-height:1.35}
+.stepbar .cap b{font-family:var(--font-mono);font-weight:600;font-size:.7rem;letter-spacing:.1em;color:var(--hi);display:block}
+
+/* ============ COMPONENT: bars (highlight chart) ============ */
+.bars svg{width:100%;height:auto;display:block}
+.bars text{font-family:var(--font-mono);fill:var(--stage-ink)}
+.bars .big{font-family:var(--font-display);font-size:22px}
+.srcpill{display:inline-block;font-family:var(--font-mono);font-size:.66rem;background:var(--card);color:var(--card-ink);padding:3px 8px;border-radius:4px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;font-family:var(--font-mono);font-size:.66rem;opacity:.9}
+
+/* ============ COMPONENT: stack (who earns at each layer) ============ */
+.stack{display:grid;gap:8px}
+.layer{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,2fr) auto;gap:12px;align-items:center;background:var(--stage-deep);border:1.5px solid var(--stage-line);border-radius:10px;padding:12px 14px}
+.layer h3{font-size:1.3rem}
+.layer p{margin:0;font-size:.86rem;opacity:.9;line-height:1.35}
+.layer .chip{font-family:var(--font-mono);font-size:.72rem;background:var(--card);color:var(--card-ink);padding:4px 8px;border-radius:6px;white-space:nowrap}
+.layer.hl{background:var(--hi);color:var(--hi-ink);border-color:var(--hi)}
+.layer.hl .chip{background:var(--hi-ink);color:var(--hi)}
+@media (max-width:560px){.layer{grid-template-columns:minmax(0,1fr)}.layer .chip{justify-self:start;white-space:normal}}
+
+/* ============ COMPONENT: note (paper card with numbered annotations) ============ */
+.note{position:relative;background:var(--card);color:var(--card-ink);border-radius:4px;padding:30px clamp(18px,4vw,40px) 26px;transform:rotate(-.6deg);
+  box-shadow:0 10px 0 -4px var(--stage-deep);max-width:760px}
+.note::before,.note::after{content:"";position:absolute;width:86px;height:26px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.06);top:-12px}
+.note::before{left:22px;transform:rotate(-6deg)} .note::after{right:22px;transform:rotate(5deg)}
+.note h3{font-size:1.6rem;margin-bottom:14px;color:var(--card-ink)}
+.note ol{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:n}
+.note li{counter-increment:n;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+.note li::before{content:counter(n);font-family:var(--font-display);font-size:1.1rem;width:30px;height:30px;border-radius:50%;background:var(--stage);color:var(--stage-ink);display:grid;place-items:center}
+.note .eq{font-family:var(--font-mono);font-size:.9rem;background:var(--card-2);padding:1px 6px;border-radius:4px;color:var(--card-ink);white-space:nowrap}
+.note .result{margin-top:16px;padding-top:12px;border-top:2px dashed var(--card-sub);font-weight:600}
+.doodle{position:absolute;color:var(--warm)} .doodle svg{width:34px;height:34px;stroke-width:2.4}
+
+/* ============ COMPONENT: stickers (real photos, cut-out style) ============ */
+.stickers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;margin-top:30px}
+.sticker{margin:0;display:grid;gap:8px;justify-items:center;text-align:center}
+.sticker img{width:100%;aspect-ratio:4/3;object-fit:cover;border:7px solid var(--card);border-radius:10px;box-shadow:0 8px 0 -3px var(--stage-deep);background:var(--card)}
+.sticker:nth-child(odd) img{transform:rotate(-1.5deg)} .sticker:nth-child(even) img{transform:rotate(1.2deg)}
+.sticker figcaption{font-family:var(--font-display);text-transform:uppercase;font-size:1.3rem;color:var(--warm);line-height:1}
+.sticker figcaption small{display:block;font-family:var(--font-body);text-transform:none;font-size:.85rem;color:var(--stage-ink);margin-top:4px;line-height:1.3}
+
+/* ============ COMPONENT: versus (what you see vs what happens) ============ */
+.versus{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);border-radius:16px;overflow:hidden;border:1.5px solid var(--stage-line)}
+.versus > div{padding:14px 16px;border-top:1.5px solid var(--stage-line)}
+.versus .h{font-family:var(--font-display);text-transform:uppercase;font-size:1.4rem;border-top:0}
+.versus .l{background:var(--stage-deep)}
+.versus .r{background:var(--card);color:var(--card-ink)}
+.versus .h.r{background:var(--hi);color:var(--hi-ink)}
+.versus .l b{font-family:var(--font-display);font-weight:400;text-transform:uppercase;font-size:1.2rem;letter-spacing:.02em}
+
+/* ============ COMPONENT: debate ============ */
+.debate{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.side{border-radius:16px;padding:20px;background:var(--stage-deep);border:1.5px solid var(--stage-line);display:grid;gap:10px;align-content:start}
+.side h3{font-size:2.2rem}
+.side.bear h3{color:var(--warm)} .side.bull h3{color:var(--hi)}
+.side ul{margin:0;padding-left:1.1em;display:grid;gap:8px;font-size:.95rem}
+.verdict{margin-top:20px;background:var(--card);color:var(--card-ink);border-radius:14px;padding:16px 18px;font-size:1.02rem}
+.verdict b{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;display:block;color:var(--card-sub);margin-bottom:4px}
+
+/* ============ COMPONENT: build-at-25 cards ============ */
+.builds{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+.build{background:var(--card);color:var(--card-ink);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.build h3{font-size:1.5rem}
+.build dl{margin:0;display:grid;gap:8px}
+.build dt{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--card-sub)}
+.build dd{margin:0;font-size:.92rem;line-height:1.4}
+
+
+/* ============ COMPONENT: waterfall (where every 100 goes) ============ */
+.wf{display:grid;gap:7px}
+.wf .row{display:grid;grid-template-columns:minmax(96px,1.1fr) minmax(0,3fr) 64px;gap:10px;align-items:center;font-size:.86rem}
+.wf .track{position:relative;height:26px}
+.wf .seg{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--card);opacity:.7}
+.wf .row.hl .seg{background:var(--hi);opacity:1}
+.wf .row.total .seg{background:var(--warm);opacity:1}
+.wf .val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.wf .row.hl .lab b{color:var(--hi)}
+.wf .lab small{display:block;opacity:.75;font-size:.72rem;line-height:1.2}
+
+/* ============ COMPONENT: quad (2x2) ============ */
+.quad svg{width:100%;height:auto;display:block}
+.quad text{font-family:var(--font-mono);fill:var(--stage-ink)}
+
+/* ============ lessons + sources ============ */
+.lessons{list-style:none;margin:20px 0 0;padding:0;counter-reset:l;display:grid;gap:14px;max-width:70ch}
+.lessons li{counter-increment:l;display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:baseline;font-size:1.05rem}
+.lessons li::before{content:counter(l,decimal-leading-zero);font-family:var(--font-display);font-size:1.9rem;color:var(--stage);line-height:1}
+.sources{font-size:.88rem;color:var(--muted);display:grid;gap:6px;padding-left:1.1em;margin:12px 0 0}
+.credit{font-family:var(--font-mono);font-size:.62rem;opacity:.75}
+
+/* ============ PRESENT MODE (the deck) ============ */
+.deck-nav{display:none}
+body.present .masthead{position:fixed;inset:0 0 auto;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+body.present #show > section{display:none}
+body.present #show > section.is-current{display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding-top:56px;padding-bottom:84px}
+body.present .talk{display:none}
+body.present #show > section.paperband.is-current{background:var(--paper)}
+body.present .split{grid-template-columns:minmax(0,1fr)}
+body.present .split > .panel{position:static;max-width:1100px;margin:0 auto;width:100%}
+body.present .panel.has-flow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:28px;align-items:center;padding:22px 26px}
+body.present .panel.has-flow .ptitle{grid-column:1/-1}
+body.present .panel.has-flow .stepbar{grid-column:2;grid-row:2;flex-wrap:wrap;background:transparent;padding:0;margin:0;align-self:center}
+body.present .panel.has-flow .stepbar .cap{order:-1;flex-basis:100%;font-size:clamp(1.1rem,2vw,1.5rem);line-height:1.3;margin-bottom:10px}
+body.present .panel.has-flow .legend{grid-column:1}
+@media (max-width:760px){body.present .panel.has-flow{grid-template-columns:minmax(0,1fr)}body.present .panel.has-flow .stepbar{grid-column:1;grid-row:auto}}
+body.present .deck-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;justify-content:center;gap:12px;align-items:center;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.deck-nav button{all:unset;cursor:pointer;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--stage-deep);color:var(--stage-ink);border:1.5px solid var(--stage-line)}
+.deck-nav button:hover{background:var(--hi);color:var(--hi-ink)}
+.deck-nav .count{font-family:var(--font-mono);font-size:.78rem;background:var(--stage-deep);color:var(--stage-ink);padding:6px 12px;border-radius:999px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <span class="stamp">First <b>principles</b> · {{TOPIC TAG}}</span>
+    <div class="modes" role="group" aria-label="View mode">
+      <button id="m-read" aria-pressed="true">Read</button>
+      <button id="m-present" aria-pressed="false">Present</button>
+    </div>
+  </div>
+</header>
+
+<main id="show">
+<!-- Every <section data-slide> is one slide in Present mode. Text inside .talk is
+     hidden in Present mode (it's the narration); everything else is the slide face.
+     Stage sections take a frame class: frame-blueprint | frame-guilloche | frame-stitch | frame-double -->
+
+<!-- COLD OPEN: the concept's whole history as ONE repeating move, ending in a "?" -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Cold open</p>
+    <h2 class="shout">{{The one-verb arc}} <em>{{the verb}}.</em></h2>
+    <ol class="eras">
+      <li class="era"><i data-lucide="{{icon}}"></i><span class="when">{{era}}</span><span class="what">{{Short caps label}}</span><span class="gloss">{{One sensory line.}}</span></li>
+      <!-- 4–6 eras -->
+      <li class="era next"><i data-lucide="circle-help"></i><span class="when">Next</span><span class="what">{{Open question?}}</span><span class="gloss">{{Admit nobody knows.}}</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- THE QUESTION: the paradox title in a cartouche + 2–3 scale numbers -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="cartouche">
+      <span class="ep tl">EXPLAINER · {{TOPIC}}</span><span class="ep br">{{MON YYYY}}</span>
+      <h1>{{Who pays for}} <em>{{the thing?}}</em></h1>
+      <div class="tally">
+        <div><b class="num">{{900M+}}</b><span>{{what it counts}}</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONVERSATION BAND: dumb question chip, then the answer in plain words -->
+<section class="talkband paperband" data-slide>
+  <div class="wrap prose">
+    <p class="eyebrow">Why I wanted to understand this</p>
+    <p class="ask">{{The naive question, in the reader's words}}</p>
+    <div class="talk"><p>{{Answer. Use <span class="mark">one highlighted fact</span> per band.}}</p></div>
+  </div>
+</section>
+
+<!-- CHAPTER CARD: every chapter title is a question -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter 1</p>
+    <h2 class="q">{{Where does my X}} <em>{{actually go?}}</em></h2>
+    <p class="sub">{{Optional one-line promise.}}</p>
+  </div>
+</section>
+
+<!-- SPLIT: conversation left, diagram panel right (sticky). The WTF side-panel. -->
+<section class="talkband paperband" data-slide>
+  <div class="wrap split">
+    <div class="talk prose">
+      <p class="ask">{{Question}}</p><p>{{Answer}}</p>
+    </div>
+    <div class="panel">
+      <p class="ptitle">{{Follow one X}}</p>
+      <div class="viz scroller" data-viz="flow"><script type="application/json">
+      {"cols":3,"rows":4,"nodeWidth":"25%","rowK":0.85,
+       "nodes":[
+        {"id":"a","x":1,"y":0,"label":"You","sub":"start here","icon":"smartphone","step":1},
+        {"id":"b","x":1,"y":1,"label":"The app","sub":"what it does","icon":"app-window","step":2},
+        {"id":"c","x":0,"y":1,"label":"Who pays","sub":"how","icon":"credit-card","step":4},
+        {"id":"d","x":1,"y":2,"label":"The network","sub":"the switch","icon":"network","step":3,"hl":true},
+        {"id":"e","x":1,"y":3,"label":"The bank","sub":"settles","icon":"landmark","step":3}
+       ],
+       "edges":[
+        {"from":"a","to":"b","label":"request","step":2},
+        {"from":"b","to":"d","label":"routes to","step":3},
+        {"from":"d","to":"e","label":"settles","step":3},
+        {"from":"c","to":"b","label":"$","kind":"money","step":4}
+       ],
+       "steps":["Step 1 caption.","Step 2 caption.","Step 3 caption.","Step 4 caption."]}
+      </script></div>
+      <div class="legend"><span><i></i>request</span><span><i class="m"></i>money</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WATERFALL: where every 100 of the customer's money goes -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="panel" style="max-width:820px">
+      <div class="viz" data-viz="waterfall"><script type="application/json">
+      {"title":"Where ₹100 goes","unit":"₹","total":100,"start":"Customer pays",
+       "parts":[
+        {"label":"Issuing bank","value":1.45,"note":"carries credit + rewards","hl":true},
+        {"label":"Network","value":0.2},
+        {"label":"Gateway","value":0.1},
+        {"label":"Merchant keeps","value":98.25}
+       ],
+       "source":"{{source}}","footnote":"{{assumptions}}"}
+      </script></div>
+    </div>
+  </div>
+</section>
+
+<!-- BARS + STACK: who earns, with one highlighted bar / layer -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap split">
+    <div class="panel" style="background:var(--stage-deep)">
+      <div class="viz bars" data-viz="bars"><script type="application/json">
+      {"title":"{{Chart title}}","prefix":"$","suffix":"B","max":800,"ticks":[0,200,400,600,800],
+       "bars":[{"label":"{{A}}","sub":"{{period}}","value":725,"note":"{{+77% YoY}}"},
+               {"label":"{{B}}","sub":"{{period}}","value":25,"note":"{{29x smaller}}","hl":true}],
+       "source":"{{source}}","footnote":"{{caveat}}"}
+      </script></div>
+    </div>
+    <div class="viz" data-viz="stack"><script type="application/json">
+      {"layers":[{"name":"{{Layer}}","what":"{{who is here}}","chip":"{{margin or number}}"},
+                 {"name":"{{Layer}}","what":"{{who}}","chip":"{{number}}","hl":true}]}
+    </script></div>
+  </div>
+</section>
+
+<!-- 2x2: place the players on two axes that matter -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="panel" style="max-width:640px">
+      <p class="ptitle">{{Title}}</p>
+      <div class="viz quad" data-viz="quad"><script type="application/json">
+      {"x":{"label":"switching cost","lo":"low","hi":"high"},"y":{"label":"scale advantage","lo":"low","hi":"high"},
+       "quadrants":["scale, easy to leave","fortress","commodity","sticky niche"],"hlQuad":1,
+       "items":[{"label":"Airline","x":0.2,"y":0.8},{"label":"WhatsApp","x":0.85,"y":0.85,"hl":true},{"label":"UPI app","x":0.15,"y":0.3}]}
+      </script></div>
+    </div>
+  </div>
+</section>
+
+<!-- NOTE: the first-principles arithmetic on a taped paper card, plus real-photo stickers -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="note">
+      <span class="doodle" style="right:-10px;top:30%"><i data-lucide="zap"></i></span>
+      <h3>{{The back-of-envelope}}</h3>
+      <ol>
+        <li><span>{{Fact with source}} <span class="eq">{{0.34 Wh}}</span></span></li>
+        <li><span>{{Stated assumption}} <span class="eq">{{$0.08 / kWh}}</span></span></li>
+        <li><span><span class="eq">{{the arithmetic}}</span></span></li>
+      </ol>
+      <p class="result">{{So what: the non-obvious conclusion.}}</p>
+    </div>
+    <div class="stickers">
+      <figure class="sticker"><img src="img/{{file}}.jpg" alt="{{what the photo shows}}"><figcaption>{{Name}}<small>{{why it matters}}</small></figcaption><span class="credit">Photo: {{author}} · {{license}}</span></figure>
+    </div>
+  </div>
+</section>
+
+<!-- VERSUS: what you see vs what actually happens (or then vs now, or India vs US) -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">What you see vs what happens</p>
+    <div class="versus" style="margin-top:16px">
+      <div class="h l">You see</div><div class="h r">What actually happens</div>
+      <div class="l"><b>{{Free}}</b></div><div class="r">{{Reality, with a number}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEBATE: the strongest case on each side, then where the host lands -->
+<section class="stage frame-blueprint" data-slide>
+  <div class="wrap">
+    <div class="debate">
+      <div class="side bear"><h3>{{Bear label}}</h3><ul><li>{{evidence with number}}</li></ul></div>
+      <div class="side bull"><h3>{{Bull label}}</h3><ul><li>{{evidence with number}}</li></ul></div>
+    </div>
+    <div class="verdict"><b>Where I've landed for now</b>{{A position, held loosely, with the condition that would change it.}}</div>
+  </div>
+</section>
+
+<!-- WHAT WOULD YOU BUILD AT 25 -->
+<section class="stage chapter frame-blueprint" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">Chapter {{n}}</p>
+    <h2 class="q">If I were 25, <em>where would I build?</em></h2>
+    <div class="builds" style="margin-top:20px;width:100%">
+      <div class="build"><h3>{{Idea}}</h3><dl><dt>The idea</dt><dd>{{one line}}</dd><dt>Why now</dt><dd>{{what changed}}</dd><dt>What could kill it</dt><dd>{{the risk}}</dd></dl></div>
+    </div>
+  </div>
+</section>
+
+<!-- LESSONS: the host reads back what they wrote down (a real sequence, so it's numbered) -->
+<section class="talkband paperband" data-slide>
+  <div class="wrap">
+    <p class="eyebrow">The lessons I've written down</p>
+    <ol class="lessons"><li>{{lesson}}</li></ol>
+  </div>
+</section>
+
+<section class="talkband paperband">
+  <div class="wrap prose">
+    <p class="eyebrow">Sources</p>
+    <ol class="sources"><li><a href="{{url}}">{{Title · Publisher, Mon YYYY}}</a></li></ol>
+    <p class="eyebrow" style="margin-top:22px">Photos (Wikimedia Commons)</p>
+    <ol class="sources"><li><a href="{{commons page}}">{{what · author · license}}</a></li></ol>
+  </div>
+</section>
+</main>
+
+<nav class="deck-nav" aria-label="Slides">
+  <button id="d-prev" aria-label="Previous"><i data-lucide="arrow-left"></i></button>
+  <span class="count" id="d-count">1 / 1</span>
+  <button id="d-next" aria-label="Next"><i data-lucide="arrow-right"></i></button>
+</nav>
+
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+/* ================= ENGINE ================= */
+(function(){
+const icons=()=>{try{window.lucide&&lucide.createIcons({attrs:{"stroke-width":2}})}catch(e){}};
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const NS="http://www.w3.org/2000/svg";
+const sv=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const R={};
+
+/* ---- flow: nodes on a grid, rail edges, step-by-step build ---- */
+R.flow=(host,d)=>{
+  const box=el("div","flow");const rows=d.rows||3,rowK=d.rowK||.62,rowMin=d.rowMin||104;
+  const svg=sv("svg",{class:"edges"});box.appendChild(svg);
+  const nodes={};
+  d.nodes.forEach(n=>{
+    const e=el("div","node"+(n.hl?" hl":""),`<span class="ic"><i data-lucide="${esc(n.icon||"circle")}"></i></span><b>${esc(n.label)}</b>${n.sub?`<small>${esc(n.sub)}</small>`:""}`);
+    e.style.left=((n.x+.5)/d.cols*100)+"%";e.style.top=((n.y+.5)/rows*100)+"%";
+    e.style.setProperty("--nw",n.w||d.nodeWidth||"29%");e.dataset.step=n.step||1;box.appendChild(e);nodes[n.id]=e;
+  });
+  host.appendChild(box);
+  const N=d.steps?d.steps.length:1;
+  let cur=N;               // complete at rest
+  let active=false;
+  const bar=el("div","stepbar",`<button aria-label="Previous step"><i data-lucide="chevron-left"></i></button><button aria-label="Play the build"><i data-lucide="play"></i></button><div class="cap"></div><button aria-label="Next step"><i data-lucide="chevron-right"></i></button>`);
+  host.after(bar);
+  const [bPrev,bPlay,cap,bNext]=bar.children;
+  const clip=(a,b)=>{ // point on a's rect border toward b
+    const ax=a.x+a.w/2,ay=a.y+a.h/2,bx=b.x+b.w/2,by=b.y+b.h/2,dx=bx-ax,dy=by-ay;
+    const sx=dx?(a.w/2+6)/Math.abs(dx):1e9,sy=dy?(a.h/2+6)/Math.abs(dy):1e9,s=Math.min(sx,sy);
+    return [ax+dx*s,ay+dy*s];};
+  const panel=host.closest(".panel");if(panel)panel.classList.add("has-flow");
+  function size(){
+    const pres=document.body.classList.contains("present");
+    const w=box.clientWidth;let h=Math.max(w*rows*rowK/d.cols,rows*rowMin);
+    if(pres)h=Math.max(rows*64,Math.min(h,innerHeight-230));   // a slide must fit the screen
+    box.style.height=h+"px";
+    box.classList.toggle("tight",h/rows<100);
+  }
+  function draw(){
+    size();svg.innerHTML="";const o=box.getBoundingClientRect();
+    const r=e=>{const q=e.getBoundingClientRect();return{x:q.left-o.left,y:q.top-o.top,w:q.width,h:q.height}};
+    (d.edges||[]).forEach(ed=>{
+      const A=nodes[ed.from],B=nodes[ed.to];if(!A||!B)return;
+      const a=r(A),b=r(B),[x1,y1]=clip(a,b),[x2,y2]=clip(b,a);
+      const g=sv("g",{class:"edge"+(ed.kind==="money"?" money":"")});g.dataset.step=ed.step||1;
+      const p=`M${x1},${y1} L${x2},${y2}`;
+      g.appendChild(sv("path",{d:p,class:"rail"}));g.appendChild(sv("path",{d:p,class:"rail-in"}));
+      const ang=Math.atan2(y2-y1,x2-x1),L=11;
+      const tip=[[x2,y2],[x2-L*Math.cos(ang-.45),y2-L*Math.sin(ang-.45)],[x2-L*Math.cos(ang+.45),y2-L*Math.sin(ang+.45)]];
+      g.appendChild(sv("polygon",{points:tip.map(p=>p.join(",")).join(" "),class:"tip"}));
+      if(ed.label){const flat=Math.abs(x2-x1)>Math.abs(y2-y1),w=ed.label.length*6.6+12;
+        // labels sit beside the rail: above a horizontal one, right of a vertical one
+        const mx=(x1+x2)/2+(flat?0:w/2+8),my=(y1+y2)/2-(flat?14:0);
+        g.appendChild(sv("rect",{x:mx-w/2,y:my-9,width:w,height:18,rx:9,class:"lbl-bg"}));
+        const t=sv("text",{x:mx,y:my+3.5,"text-anchor":"middle"});t.textContent=ed.label;g.appendChild(t);}
+      svg.appendChild(g);
+    });
+    paint();
+  }
+  function paint(){
+    box.querySelectorAll("[data-step]").forEach(e=>{
+      const s=+e.dataset.step;e.classList.toggle("ghost",s>cur);
+      e.classList.toggle("now",active&&s===cur&&e.classList.contains("node"));
+    });
+    cap.innerHTML=active?`<b>STEP ${cur} OF ${N}</b>${esc(d.steps[cur-1])}`:`<b>${N} STEPS</b>Press play to watch it build, or step through.`;
+  }
+  let timer=null;
+  const stop=()=>{clearInterval(timer);timer=null};
+  const go=s=>{active=true;cur=Math.max(1,Math.min(N,s));paint()};
+  bPrev.onclick=()=>{stop();go(active?cur-1:N)};
+  bNext.onclick=()=>{stop();go(active?cur+1:1)};
+  bPlay.onclick=()=>{stop();go(1);timer=setInterval(()=>{if(cur>=N)return stop();go(cur+1)},2600)};
+  host._flow={reset:()=>{stop();go(1)},next:()=>{if(!active)go(1);else if(cur<N){go(cur+1)}else return false;return true},
+              prev:()=>{if(active&&cur>1){go(cur-1);return true}return false},rest:()=>{stop();active=false;cur=N;paint()}};
+  let raf=0;const later=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)};
+  new ResizeObserver(later).observe(box);box.addEventListener("redraw",later);addEventListener("resize",later);
+  draw();
+};
+
+/* ---- bars: one highlighted bar, value labels, source pill ---- */
+R.bars=(host,d)=>{
+  const W=560,H=360,L=56,Rm=16,T=56,B=70,iw=W-L-Rm,ih=H-T-B,n=d.bars.length,max=d.max||Math.max(...d.bars.map(b=>b.value))*1.15;
+  const s=sv("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":d.title});
+  const tt=sv("text",{x:L-40,y:30,class:"big",fill:"var(--warm)"});tt.textContent=(d.title||"").toUpperCase();tt.style.fill="var(--warm)";s.appendChild(tt);
+  (d.ticks||[0,max/2,max]).forEach(v=>{const y=T+ih-v/max*ih;
+    s.appendChild(sv("line",{x1:L,x2:W-Rm,y1:y,y2:y,stroke:"var(--stage-line)","stroke-width":1}));
+    const t=sv("text",{x:L-8,y:y+4,"text-anchor":"end","font-size":11});t.textContent=v;s.appendChild(t);});
+  const slot=iw/n,bw=Math.min(96,slot*.56);
+  d.bars.forEach((b,i)=>{const h=b.value/max*ih,x=L+slot*i+(slot-bw)/2,y=T+ih-h;
+    s.appendChild(sv("rect",{x,y,width:bw,height:Math.max(h,2),rx:3,fill:b.hl?"var(--hi)":"var(--card)","fill-opacity":b.hl?1:.6}));
+    const v=sv("text",{x:x+bw/2,y:y-(b.note?24:8),"text-anchor":"middle","font-size":17,"font-weight":600});v.textContent=(d.prefix??"$")+b.value+(d.suffix??"B");s.appendChild(v);
+    if(b.note){const nt=sv("text",{x:x+bw/2,y:y-8,"text-anchor":"middle","font-size":10.5,opacity:.85});nt.textContent=b.note;s.appendChild(nt);}
+    const lb=sv("text",{x:x+bw/2,y:T+ih+20,"text-anchor":"middle","font-size":12.5,"font-weight":600});lb.textContent=b.label.toUpperCase();lb.style.fill=b.hl?"var(--hi)":"var(--stage-ink)";s.appendChild(lb);
+    if(b.sub){const sb=sv("text",{x:x+bw/2,y:T+ih+36,"text-anchor":"middle","font-size":10,opacity:.75});sb.textContent=b.sub;s.appendChild(sb);}
+  });
+  host.appendChild(s);
+  host.appendChild(el("div","foot",`<span>${esc(d.footnote||"")}</span><span class="srcpill">Source: ${esc(d.source||"")}</span>`));
+};
+
+/* ---- stack: layers of an industry, one highlighted ---- */
+R.stack=(host,d)=>{const w=el("div","stack");
+  d.layers.forEach(l=>w.appendChild(el("div","layer"+(l.hl?" hl":""),`<h3>${esc(l.name)}</h3><p>${esc(l.what)}</p><span class="chip">${esc(l.chip||"")}</span>`)));
+  host.appendChild(w);};
+
+
+/* ---- waterfall: follow 100 units of money down to each actor ---- */
+R.waterfall=(host,d)=>{const w=el("div","wf"),tot=d.total||100,u=d.unit||"";
+  if(d.title)host.appendChild(el("p","ptitle",esc(d.title)));
+  w.appendChild(el("div","row total",`<span class="lab"><b>${esc(d.start||"You pay")}</b></span><span class="track"><span class="seg" style="left:0;width:100%"></span></span><span class="val">${u}${tot}</span>`));
+  let run=tot;
+  d.parts.forEach(p=>{run-=p.value;const left=run/tot*100,wd=p.value/tot*100;
+    w.appendChild(el("div","row"+(p.hl?" hl":""),`<span class="lab"><b>${esc(p.label)}</b>${p.note?`<small>${esc(p.note)}</small>`:""}</span><span class="track"><span class="seg" style="left:${left}%;width:${Math.max(wd,.6)}%"></span></span><span class="val">${u}${p.value}</span>`));});
+  host.appendChild(w);
+  if(d.source)host.appendChild(el("div","foot",`<span>${esc(d.footnote||"")}</span><span class="srcpill">Source: ${esc(d.source)}</span>`));};
+
+/* ---- quad: a 2x2 with named quadrants and plotted players ---- */
+R.quad=(host,d)=>{const W=520,H=440,P=46,iw=W-P*2,ih=H-P*2,s=sv("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":d.title||"2x2"});
+  [[0,0],[1,0],[0,1],[1,1]].forEach(([i,j],k)=>{s.appendChild(sv("rect",{x:P+i*iw/2,y:P+j*ih/2,width:iw/2,height:ih/2,fill:k===d.hlQuad?"var(--hi)":"var(--stage-deep)","fill-opacity":k===d.hlQuad?.22:1,stroke:"var(--stage-line)"}));
+    if(d.quadrants&&d.quadrants[k]){const t=sv("text",{x:P+i*iw/2+10,y:P+j*ih/2+20,"font-size":11,opacity:.75});t.textContent=d.quadrants[k].toUpperCase();s.appendChild(t);}});
+  const ax=(txt,x,y,rot)=>{const t=sv("text",{x,y,"text-anchor":"middle","font-size":11.5,transform:rot?`rotate(-90 ${x} ${y})`:""});t.textContent=txt;s.appendChild(t)};
+  ax(`${d.x.lo}  ←  ${d.x.label}  →  ${d.x.hi}`,W/2,H-14);ax(`${d.y.lo}  ←  ${d.y.label}  →  ${d.y.hi}`,16,H/2,true);
+  d.items.forEach(it=>{const cx=P+it.x*iw,cy=P+(1-it.y)*ih;
+    s.appendChild(sv("circle",{cx,cy,r:it.hl?9:7,fill:it.hl?"var(--hi)":"var(--card)",stroke:"var(--stage-deep)","stroke-width":2}));
+    const t=sv("text",{x:cx+(it.x>.75?-13:13),y:cy+4,"text-anchor":it.x>.75?"end":"start","font-size":12.5,"font-weight":600});t.textContent=it.label;s.appendChild(t);});
+  host.appendChild(s);};
+
+document.querySelectorAll(".viz[data-viz]").forEach(h=>{
+  const j=h.querySelector('script[type="application/json"]');if(!j)return;
+  try{R[h.dataset.viz]&&R[h.dataset.viz](h,JSON.parse(j.textContent))}catch(e){h.appendChild(el("p","mono","Diagram data error: "+esc(e.message)))}
+});
+icons();
+
+/* ---- Read / Present modes ---- */
+const body=document.body,slides=[...document.querySelectorAll("#show > [data-slide]")];
+let idx=0;
+const bRead=document.getElementById("m-read"),bPres=document.getElementById("m-present"),cnt=document.getElementById("d-count");
+function show(i){idx=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle("is-current",k===idx));cnt.textContent=`${idx+1} / ${slides.length}`;
+  const f=slides[idx].querySelector(".viz[data-viz=flow]");if(f&&f._flow)f._flow.reset();
+  window.scrollTo(0,0);}
+function setMode(p){body.classList.toggle("present",p);bRead.setAttribute("aria-pressed",!p);bPres.setAttribute("aria-pressed",p);
+  dispatchEvent(new Event("resize"));document.querySelectorAll(".flow").forEach(f=>f.dispatchEvent(new Event("redraw")));
+  if(p){show(idx);if(location.hash!=="#present")history.replaceState(null,"","#present")}
+  else{slides.forEach(s=>s.classList.remove("is-current"));document.querySelectorAll(".viz[data-viz=flow]").forEach(f=>f._flow&&f._flow.rest());
+    if(location.hash==="#present")history.replaceState(null,"",location.pathname+location.search)}}
+bRead.onclick=()=>setMode(false);bPres.onclick=()=>setMode(true);
+const flowOf=()=>{const f=slides[idx].querySelector(".viz[data-viz=flow]");return f&&f._flow};
+const next=()=>{const f=flowOf();if(f&&f.next())return;show(idx+1)};
+const prev=()=>{const f=flowOf();if(f&&f.prev())return;show(idx-1)};
+document.getElementById("d-next").onclick=next;document.getElementById("d-prev").onclick=prev;
+addEventListener("keydown",e=>{if(!body.classList.contains("present"))return;
+  if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();next()}
+  else if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();prev()}
+  else if(e.key==="Escape")setMode(false)});
+addEventListener("hashchange",()=>setMode(location.hash==="#present"));
+if(location.hash==="#present"||(!location.hash&&document.getElementById("show").dataset.default==="present"))setMode(true);
+})();
+</script>
+```
+
+## Photo script (`commons.py`)
+
+```python
+#!/usr/bin/env python3
+"""Find and download freely licensed photos from Wikimedia Commons.
+
+search:   python3 commons.py search "data center racks" [n]
+download: python3 commons.py get "File:Some name.jpg" out.jpg [width]
+
+Prints license + author so the page can credit each image.
+"""
+import json, re, sys, urllib.error, urllib.parse, urllib.request
+
+UA = "explainer-skill/1.0 (educational explainer pages)"
+API = "https://commons.wikimedia.org/w/api.php"
+OK = ("CC0", "Public domain", "CC BY", "CC BY-SA", "PD")
+
+
+def fetch(url):
+    # Commons rate-limits bursts (HTTP 429); back off and retry.
+    import time
+    for wait in (0, 5, 15, 40):
+        time.sleep(wait)
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            return urllib.request.urlopen(req, timeout=60).read()
+        except urllib.error.HTTPError as e:
+            if e.code != 429:
+                raise
+    raise RuntimeError("Commons kept rate-limiting; try again in a minute")
+
+
+def call(params):
+    return json.loads(fetch(API + "?" + urllib.parse.urlencode(params)))
+
+
+def info(pages, width):
+    out = []
+    for p in pages.values():
+        ii = (p.get("imageinfo") or [{}])[0]
+        m = ii.get("extmetadata", {})
+        lic = m.get("LicenseShortName", {}).get("value", "")
+        artist = re.sub("<[^>]+>", "", m.get("Artist", {}).get("value", "")).strip()
+        out.append({
+            "title": p["title"], "license": lic, "artist": artist[:80],
+            "thumb": (ii.get("thumburl") or "").split("?")[0],
+            "page": ii.get("descriptionurl", ""),
+            "size": f'{ii.get("width")}x{ii.get("height")}',
+            # Skip AI-generated images: the point of a photo is that it is real.
+            "usable": lic.startswith(OK) and not re.search(r"DALL|Midjourney|AI[- ]generated|Stable Diffusion", p["title"], re.I),
+        })
+    return out
+
+
+def search(q, n=6, width=960):
+    d = call({"action": "query", "generator": "search", "gsrsearch": q + " filetype:bitmap",
+              "gsrnamespace": 6, "gsrlimit": n, "prop": "imageinfo",
+              "iiprop": "url|extmetadata|size", "iiurlwidth": width, "format": "json"})
+    return info(d.get("query", {}).get("pages", {}), width)
+
+
+def get(title, out, width=960):
+    d = call({"action": "query", "titles": title, "prop": "imageinfo",
+              "iiprop": "url|extmetadata|size", "iiurlwidth": width, "format": "json"})
+    meta = info(d["query"]["pages"], width)[0]
+    # Commons only serves standard thumbnail widths; use the URL the API returns.
+    open(out, "wb").write(fetch(meta["thumb"]))
+    meta["file"] = out
+    return meta
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1]
+    if cmd == "search":
+        for r in search(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 6):
+            print(json.dumps(r, ensure_ascii=False))
+    elif cmd == "get":
+        w = int(sys.argv[4]) if len(sys.argv) > 4 else 960
+        print(json.dumps(get(sys.argv[2], sys.argv[3], w), ensure_ascii=False))
+```
